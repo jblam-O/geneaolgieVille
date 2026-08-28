@@ -25,6 +25,8 @@ class TownEvent
     private ?string $summary = null;
     #[ORM\Column(type: 'text')]
     private ?string $detail = null;
+    #[ORM\Column(length: 255, nullable: true)]
+    private ?string $address = null;
     #[ORM\Column(nullable: true)]
     private ?float $latitude = null;
     #[ORM\Column(nullable: true)]
@@ -49,6 +51,8 @@ class TownEvent
     public function setSummary(string $summary): static { $this->summary = $summary; return $this; }
     public function getDetail(): ?string { return $this->detail; }
     public function setDetail(string $detail): static { $this->detail = $detail; return $this; }
+    public function getAddress(): ?string { return $this->address; }
+    public function setAddress(?string $address): static { $this->address = $address; return $this; }
     public function getLatitude(): ?float { return $this->latitude; }
     public function setLatitude(?float $latitude): static { $this->latitude = $latitude; return $this; }
     public function getLongitude(): ?float { return $this->longitude; }
