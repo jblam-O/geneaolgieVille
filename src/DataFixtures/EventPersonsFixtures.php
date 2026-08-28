@@ -2,6 +2,7 @@
 
 namespace App\DataFixtures;
 
+use App\Entity\Civilization;
 use App\Entity\Events;
 use App\Entity\Person;
 use Doctrine\Bundle\FixturesBundle\Fixture;
@@ -17,6 +18,15 @@ class EventPersonsFixtures extends Fixture
             'rome' => ["name" => "Rome", "color" => "#d62728"],
             'renaissance' => ["name" => "Renaissance", "color" => "#8fbf7a"],
         ];
+
+        $civilizationEntities = [];
+        foreach ($civilizations as $key => $data) {
+            $civilization = (new Civilization())
+                ->setName($key)
+                ->setColor($data['color']);
+            $manager->persist($civilization);
+            $civilizationEntities[$key] = $civilization;
+        }
 
         $eventsData = [
             [
@@ -180,7 +190,7 @@ class EventPersonsFixtures extends Fixture
             $event = (new Events())
                 ->setYear($eventData['year'])
                 ->setLabel($eventData['label'])
-                ->setCivilization($eventData['civ'])
+                ->setCivilization($civilizationEntities[$eventData['civ']])
                 ->setPeriod($eventData['period'])
                 ->setTitle($eventData['title'])
                 ->setSummary($eventData['summary'])

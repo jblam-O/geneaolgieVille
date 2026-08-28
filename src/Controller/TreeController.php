@@ -13,6 +13,12 @@ use Symfony\Component\Routing\Attribute\Route;
 
 class TreeController extends AbstractController
 {
+    #[Route('/', name: 'app_home')]
+    public function home(): Response
+    {
+        return $this->redirectToRoute('app_trees');
+    }
+
     #[Route('/trees', name: 'app_trees')]
     public function index(
         Request $request,
@@ -82,7 +88,7 @@ class TreeController extends AbstractController
                 'id' => $event->getId(),
                 'year' => $event->getYear(),
                 'label' => $event->getLabel(),
-                'civ' => $event->getCivilization(),
+                'civ' => $event->getCivilization()?->getName(),
                 'period' => $event->getPeriod(),
                 'persons' => $persons,
                 'title' => $event->getTitle(),

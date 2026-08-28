@@ -45,7 +45,7 @@ class Person
     /**
      * @var Collection<int, self>
      */
-    #[ORM\ManyToMany(targetEntity: self::class, inversedBy: 'parent')]
+    #[ORM\ManyToMany(targetEntity: self::class)]
     private Collection $parent;
 
     /**
