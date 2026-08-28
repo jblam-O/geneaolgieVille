@@ -431,6 +431,7 @@
     // Tab switching for filter modes
     document.getElementById("tab-civ").addEventListener("click", () => {
       activeFilterMode = "civ";
+      activeFilters = { civ: "all", period: null, person: null };
       document.querySelectorAll(".filter-type-tab").forEach(t => {
         t.style.background = t === document.getElementById("tab-civ") ? "#d4af37" : "rgba(212,175,55,0.2)";
         t.style.color = t === document.getElementById("tab-civ") ? "#1a1a2e" : "#d4af37";
@@ -442,6 +443,7 @@
 
     document.getElementById("tab-period").addEventListener("click", () => {
       activeFilterMode = "period";
+      activeFilters = { civ: "all", period: null, person: null };
       document.querySelectorAll(".filter-type-tab").forEach(t => {
         t.style.background = t === document.getElementById("tab-period") ? "#d4af37" : "rgba(212,175,55,0.2)";
         t.style.color = t === document.getElementById("tab-period") ? "#1a1a2e" : "#d4af37";
@@ -453,6 +455,7 @@
 
     document.getElementById("tab-person").addEventListener("click", () => {
       activeFilterMode = "person";
+      activeFilters = { civ: "all", period: null, person: null };
       document.querySelectorAll(".filter-type-tab").forEach(t => {
         t.style.background = t === document.getElementById("tab-person") ? "#d4af37" : "rgba(212,175,55,0.2)";
         t.style.color = t === document.getElementById("tab-person") ? "#1a1a2e" : "#d4af37";
