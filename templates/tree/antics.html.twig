@@ -1,0 +1,478 @@
+<!doctype html>
+<html lang="fr" class="h-full">
+ <head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{{ uiText.pageTitle }}</title>
+  <script src="https://cdn.tailwindcss.com/3.4.17"></script>
+  <script src="https://cdn.jsdelivr.net/npm/lucide@0.263.0/dist/umd/lucide.min.js"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700&amp;family=Nunito:wght@400;600;700&amp;display=swap" rel="stylesheet">
+  <style>
+    html, body { height: 100%; margin: 0; }
+    * { box-sizing: border-box; }
+
+    .timeline-line {
+      position: absolute;
+      left: 50%;
+      top: 0;
+      bottom: 0;
+      width: 3px;
+      transform: translateX(-50%);
+    }
+
+    @media (max-width: 768px) {
+      .timeline-line { left: 24px; }
+    }
+
+    .event-card {
+      transition: all 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+      cursor: pointer;
+    }
+
+    .event-card:hover {
+      transform: translateY(-2px);
+    }
+
+    .card-content {
+      max-height: 0;
+      overflow: hidden;
+      transition: max-height 0.5s cubic-bezier(0.25, 0.46, 0.45, 0.94), padding 0.3s ease;
+    }
+
+    .card-content.expanded {
+      max-height: 500px;
+    }
+
+    .chevron-icon {
+      transition: transform 0.3s ease;
+    }
+
+    .chevron-icon.rotated {
+      transform: rotate(180deg);
+    }
+
+    .dot-pulse {
+      animation: pulse 2s ease-in-out infinite;
+    }
+
+    @keyframes pulse {
+      0%, 100% { box-shadow: 0 0 0 0 rgba(212, 175, 55, 0.4); }
+      50% { box-shadow: 0 0 0 10px rgba(212, 175, 55, 0); }
+    }
+
+    .fade-in {
+      opacity: 0;
+      transform: translateY(20px);
+      animation: fadeUp 0.6s ease forwards;
+    }
+
+    @keyframes fadeUp {
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .civ-tag {
+      font-size: 0.65rem;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      font-weight: 700;
+      padding: 2px 8px;
+      border-radius: 9999px;
+    }
+
+    .filter-btn {
+      transition: all 0.25s ease;
+      border: 2px solid transparent;
+    }
+    .filter-btn.active {
+      transform: scale(1.05);
+    }
+  </style>
+  <style>body { box-sizing: border-box; }</style>
+ </head>
+ <body class="h-full">
+  <div id="app-wrapper" class="w-full h-full overflow-auto" style="background: #1a1a2e; color: #e8e0d0;">
+   <header class="text-center py-10 px-4 relative overflow-hidden">
+    <div style="position:absolute;inset:0;background:radial-gradient(ellipse at 50% 0%, rgba(212,175,55,0.12) 0%, transparent 70%);pointer-events:none;"></div>
+    <p class="civ-tag inline-block mb-3" style="background:rgba(212,175,55,0.15);color:#d4af37;">{{ uiText.tagline }}</p>
+    <h1 id="main-title" style="font-family:'Cinzel',serif;font-size:2.4rem;font-weight:700;color:#d4af37;line-height:1.2;">{{ uiText.title }}</h1>
+    <p id="main-subtitle" style="font-family:'Nunito',sans-serif;font-size:1.1rem;color:#a89b8a;margin-top:0.5rem;">{{ uiText.subtitle }}</p><!-- Progress Bar -->
+    <div class="mt-6 max-w-md mx-auto px-4">
+     <div class="flex justify-between items-center mb-2">
+      <span style="font-family:'Nunito',sans-serif;font-size:0.9rem;color:#a89b8a;">{{ uiText.progressLabel }}</span> <span id="progress-text" style="font-family:'Nunito',sans-serif;font-size:0.9rem;color:#d4af37;font-weight:600;">0/{{ events|length }}</span>
+     </div>
+     <div style="background:rgba(212,175,55,0.1);border-radius:9999px;height:8px;overflow:hidden;border:1px solid rgba(212,175,55,0.2);">
+      <div id="progress-bar" style="height:100%;background:linear-gradient(90deg, #d4af37 0%, #e8a838 100%);width:0%;transition:width 0.4s ease;"></div>
+     </div>
+    {# </div><!-- Quiz Button --> <button id="quiz-toggle-btn" class="mt-4 px-5 py-2 rounded-full text-sm font-semibold" style="background:rgba(91,155,213,0.2);color:#5b9bd5;border:2px solid rgba(91,155,213,0.3);font-family:'Nunito',sans-serif;transition:all 0.25s ease;cursor:pointer;"> <i data-lucide="brain" style="width:14px;height:14px;display:inline;margin-right:6px;vertical-align:middle;"></i>{{ uiText.quizButton }} </button> #}
+    <nav id="filters" class="flex flex-wrap justify-center gap-2 mt-6" role="navigation" aria-label="Filtrer par civilisation">
+    </nav><!-- Filter Type Tabs -->
+    <div style="display:flex;justify-content:center;gap:8px;margin-top:8px;flex-wrap:wrap;"><button id="tab-civ" class="filter-type-tab px-3 py-1 text-xs font-semibold rounded-full active" style="background:#d4af37;color:#1a1a2e;font-family:'Nunito',sans-serif;cursor:pointer;border:none;transition:all 0.2s;">{{ uiText.tabCiv }}</button> <button id="tab-period" class="filter-type-tab px-3 py-1 text-xs font-semibold rounded-full" style="background:rgba(212,175,55,0.2);color:#d4af37;font-family:'Nunito',sans-serif;cursor:pointer;border:none;transition:all 0.2s;">{{ uiText.tabPeriod }}</button> <button id="tab-person" class="filter-type-tab px-3 py-1 text-xs font-semibold rounded-full" style="background:rgba(212,175,55,0.2);color:#d4af37;font-family:'Nunito',sans-serif;cursor:pointer;border:none;transition:all 0.2s;">{{ uiText.tabPerson }}</button>
+    </div>
+   </header><!-- Quiz Modal -->
+   <div id="quiz-modal" style="position:fixed;inset:0;background:rgba(0,0,0,0.7);display:none;z-index:1000;align-items:center;justify-content:center;padding:20px;backdrop-filter:blur(2px);">
+    <div style="background:#252545;border-radius:16px;max-width:500px;width:100%;max-height:90vh;overflow:auto;border:2px solid rgba(212,175,55,0.3);padding:0;">
+     <div style="padding:24px;border-bottom:1px solid rgba(212,175,55,0.2);display:flex;justify-content:space-between;align-items:center;position:sticky;top:0;background:#252545;">
+      <h2 style="font-family:'Cinzel',serif;font-size:1.5rem;color:#d4af37;margin:0;">{{ uiText.quizTitle }}</h2><button id="quiz-close-btn" style="background:none;border:none;color:#a89b8a;cursor:pointer;font-size:1.5rem;padding:0;">×</button>
+     </div>
+     <div id="quiz-content" style="padding:24px;"></div>
+    </div>
+   </div>
+   <main class="relative max-w-4xl mx-auto px-4 pb-16" role="main">
+    <div class="timeline-line" style="background:linear-gradient(to bottom, transparent, #d4af37 10%, #d4af37 90%, transparent);"></div>
+    <div id="timeline-container" class="relative">
+    </div>
+   </main>
+  </div>
+  <script>
+    const EVENTS = {{ events|json_encode|raw }};
+    const CIV_META = {{ civilizations|json_encode|raw }};
+    const PERIOD_META = {{ periods|json_encode|raw }};
+    {# const QUIZ_QUESTIONS = {{ quizQuestions|json_encode|raw }}; #}
+    const defaultConfig = {{ defaultConfig|json_encode|raw }};
+    const uiText = {{ uiText|json_encode|raw }};
+
+    let activeFilter = "all";
+    let expandedCards = new Set();
+    let exploredEvents = new Set();
+    let activeFilterMode = "civ"; // "civ", "period", or "person"
+    let activeFilters = { civ: "all", period: null, person: null };
+
+    // Extract all unique persons
+    function getAllPersons() {
+      const persons = new Set();
+      EVENTS.forEach(evt => {
+        evt.persons.forEach(p => persons.add(p));
+      });
+      return Array.from(persons).sort();
+    }
+    
+    function updateProgress() {
+      const progress = exploredEvents.size;
+      const total = EVENTS.length;
+      document.getElementById("progress-text").textContent = `${progress}/${total}`;
+      document.getElementById("progress-bar").style.width = `${(progress / total) * 100}%`;
+    }
+    
+    {# function showQuiz() {
+      const modal = document.getElementById("quiz-modal");
+      const content = document.getElementById("quiz-content");
+      
+      if (QUIZ_QUESTIONS.length === 0) {
+        content.innerHTML = `<p style="color:#a89b8a;font-family:Nunito,sans-serif;text-align:center;">${uiText.quizEmpty}</p>`;
+        modal.style.display = "flex";
+        return;
+      }
+      
+      const question = QUIZ_QUESTIONS[Math.floor(Math.random() * QUIZ_QUESTIONS.length)];
+      let answered = false;
+      
+      content.innerHTML = `
+        <div style="margin-bottom:20px;">
+          <p style="color:#e8e0d0;font-family:Nunito,sans-serif;font-size:1.1rem;margin:0 0 16px 0;line-height:1.5;">${question.question}</p>
+          <div id="options-container" style="display:flex;flex-direction:column;gap:10px;"></div>
+        </div>
+        <div id="feedback" style="padding:12px;border-radius:8px;font-family:Nunito,sans-serif;font-size:0.95rem;display:none;text-align:center;"></div>
+        <button id="next-question-btn" style="width:100%;padding:10px;margin-top:16px;background:#d4af37;color:#1a1a2e;border:none;border-radius:8px;font-family:Nunito,sans-serif;font-weight:600;cursor:pointer;display:none;">${uiText.nextQuestion}</button>
+      `;
+      
+      const optionsContainer = document.getElementById("options-container");
+      question.options.forEach(option => {
+        const btn = document.createElement("button");
+        btn.style.cssText = `
+          padding:12px;
+          background:rgba(91,155,213,0.1);
+          border:2px solid rgba(91,155,213,0.3);
+          border-radius:8px;
+          color:#5b9bd5;
+          font-family:Nunito,sans-serif;
+          cursor:pointer;
+          transition:all 0.2s ease;
+          text-align:left;
+        `;
+        btn.textContent = option;
+        btn.onmouseover = () => btn.style.background = answered ? btn.style.background : "rgba(91,155,213,0.2)";
+        btn.onmouseout = () => btn.style.background = answered ? btn.style.background : "rgba(91,155,213,0.1)";
+        btn.addEventListener("click", () => {
+          if (!answered) {
+            answered = true;
+            const isCorrect = option === question.correct;
+            const feedback = document.getElementById("feedback");
+            feedback.style.display = "block";
+            feedback.textContent = isCorrect ? "✓ Correct !" : `✗ Incorrect. La bonne réponse est : ${question.correct}`;
+            feedback.style.background = isCorrect ? "rgba(91, 155, 213, 0.2)" : "rgba(192, 80, 77, 0.2)";
+            feedback.style.color = isCorrect ? "#5b9bd5" : "#c0504d";
+            document.getElementById("next-question-btn").style.display = "block";
+            optionsContainer.querySelectorAll("button").forEach(b => b.style.opacity = "0.6");
+            btn.style.opacity = "1";
+            btn.style.background = isCorrect ? "rgba(91, 155, 213, 0.3)" : "rgba(192, 80, 77, 0.3)";
+            btn.style.borderColor = isCorrect ? "rgba(91, 155, 213, 0.6)" : "rgba(192, 80, 77, 0.6)";
+          }
+        });
+        optionsContainer.appendChild(btn);
+      });
+      
+      document.getElementById("next-question-btn").addEventListener("click", showQuiz);
+      modal.style.display = "flex";
+    } #}
+
+    function buildFilters() {
+      const nav = document.getElementById("filters");
+      nav.innerHTML = "";
+
+      if (activeFilterMode === "civ") {
+        const allBtn = document.createElement("button");
+        allBtn.className = "filter-btn px-4 py-1.5 rounded-full text-sm font-semibold active";
+        allBtn.style.cssText = `background:${defaultConfig.accent_color};color:${defaultConfig.background_color};font-family:'Nunito',sans-serif;`;
+        allBtn.textContent = "Toutes";
+        allBtn.dataset.filter = "all";
+        allBtn.addEventListener("click", () => setFilter("all"));
+        nav.appendChild(allBtn);
+
+        for (const [key, meta] of Object.entries(CIV_META)) {
+          const btn = document.createElement("button");
+          btn.className = "filter-btn px-4 py-1.5 rounded-full text-sm font-semibold";
+          btn.style.cssText = `background:${meta.bg};color:${meta.color};border:2px solid ${meta.border};font-family:'Nunito',sans-serif;`;
+          btn.textContent = meta.name;
+          btn.dataset.filter = key;
+          btn.addEventListener("click", () => setFilter(key));
+          nav.appendChild(btn);
+        }
+      } else if (activeFilterMode === "period") {
+        const allBtn = document.createElement("button");
+        allBtn.className = "filter-btn px-4 py-1.5 rounded-full text-sm font-semibold active";
+        allBtn.style.cssText = `background:${defaultConfig.accent_color};color:${defaultConfig.background_color};font-family:'Nunito',sans-serif;`;
+        allBtn.textContent = "Toutes";
+        allBtn.dataset.filter = "all";
+        allBtn.addEventListener("click", () => setFilter("all"));
+        nav.appendChild(allBtn);
+
+        for (const [key, meta] of Object.entries(PERIOD_META)) {
+          const btn = document.createElement("button");
+          btn.className = "filter-btn px-4 py-1.5 rounded-full text-sm font-semibold";
+          btn.style.cssText = `background:${meta.bg};color:${meta.color};border:2px solid ${meta.border};font-family:'Nunito',sans-serif;`;
+          btn.textContent = meta.name;
+          btn.dataset.filter = key;
+          btn.addEventListener("click", () => setFilter(key));
+          nav.appendChild(btn);
+        }
+      } else if (activeFilterMode === "person") {
+        const allBtn = document.createElement("button");
+        allBtn.className = "filter-btn px-4 py-1.5 rounded-full text-sm font-semibold active";
+        allBtn.style.cssText = `background:${defaultConfig.accent_color};color:${defaultConfig.background_color};font-family:'Nunito',sans-serif;`;
+        allBtn.textContent = "Tous";
+        allBtn.dataset.filter = "all";
+        allBtn.addEventListener("click", () => setFilter("all"));
+        nav.appendChild(allBtn);
+
+        const persons = getAllPersons();
+        persons.forEach(person => {
+          const btn = document.createElement("button");
+          btn.className = "filter-btn px-4 py-1.5 rounded-full text-sm font-semibold";
+          btn.style.cssText = `background:rgba(212,175,55,0.1);color:#d4af37;border:2px solid rgba(212,175,55,0.3);font-family:'Nunito',sans-serif;`;
+          btn.textContent = person;
+          btn.dataset.filter = person;
+          btn.addEventListener("click", () => setFilter(person));
+          nav.appendChild(btn);
+        });
+      }
+    }
+
+    function setFilter(f) {
+      if (activeFilterMode === "civ") {
+        activeFilters.civ = f;
+      } else if (activeFilterMode === "period") {
+        activeFilters.period = f;
+      } else if (activeFilterMode === "person") {
+        activeFilters.person = f;
+      }
+      
+      document.querySelectorAll(".filter-btn").forEach(btn => {
+        const isActive = btn.dataset.filter === f;
+        btn.classList.toggle("active", isActive);
+        if (btn.dataset.filter === "all") {
+          btn.style.background = isActive ? defaultConfig.accent_color : "rgba(212,175,55,0.15)";
+          btn.style.color = isActive ? defaultConfig.background_color : defaultConfig.accent_color;
+        } else {
+          let meta;
+          if (activeFilterMode === "civ") {
+            meta = CIV_META[btn.dataset.filter];
+          } else if (activeFilterMode === "period") {
+            meta = PERIOD_META[btn.dataset.filter];
+          } else {
+            meta = null;
+          }
+          if (meta) {
+            btn.style.background = isActive ? meta.color : meta.bg;
+            btn.style.color = isActive ? "#fff" : meta.color;
+          } else {
+            btn.style.background = isActive ? "#d4af37" : "rgba(212,175,55,0.1)";
+            btn.style.color = isActive ? "#1a1a2e" : "#d4af37";
+          }
+        }
+      });
+      renderTimeline();
+    }
+
+    function renderTimeline() {
+      const container = document.getElementById("timeline-container");
+      let filtered = EVENTS;
+
+      // Apply civilisation filter
+      if (activeFilters.civ !== "all" && activeFilters.civ !== null) {
+        filtered = filtered.filter(e => e.civ === activeFilters.civ);
+      }
+
+      // Apply period filter
+      if (activeFilters.period !== "all" && activeFilters.period !== null) {
+        filtered = filtered.filter(e => e.period === activeFilters.period);
+      }
+
+      // Apply person filter
+      if (activeFilters.person !== "all" && activeFilters.person !== null) {
+        filtered = filtered.filter(e => e.persons.includes(activeFilters.person));
+      }
+
+      filtered.sort((a, b) => a.year - b.year);
+      container.innerHTML = "";
+
+      filtered.forEach((evt, i) => {
+        const meta = CIV_META[evt.civ];
+        const isLeft = i % 2 === 0;
+        const isExpanded = expandedCards.has(evt.id);
+
+        const wrapper = document.createElement("div");
+        wrapper.className = "relative flex items-start mb-8 fade-in";
+        wrapper.style.animationDelay = `${i * 0.08}s`;
+
+        const isMobile = window.innerWidth < 768;
+
+        if (isMobile) {
+          wrapper.innerHTML = `
+            <div class="absolute left-[24px] top-2 w-4 h-4 rounded-full dot-pulse z-10" style="background:${meta.color};transform:translateX(-50%);border:3px solid ${defaultConfig.background_color};"></div>
+            <div class="ml-12 w-full">
+              <div class="event-card rounded-xl p-4 border" style="background:${defaultConfig.card_color};border-color:${meta.border};" data-id="${evt.id}">
+                <div class="flex items-center justify-between gap-2">
+                  <div class="flex items-center gap-2 min-w-0">
+                    <span class="text-2xl flex-shrink-0">${evt.emoji}</span>
+                    <div class="min-w-0">
+                      <div class="flex items-center gap-2 flex-wrap">
+                        <span class="civ-tag" style="background:${meta.bg};color:${meta.color};">${meta.name}</span>
+                        <span class="text-xs" style="color:${defaultConfig.muted_color};font-family:'Nunito',sans-serif;">${evt.label}</span>
+                      </div>
+                      <h3 class="font-bold mt-1 text-sm leading-tight" style="font-family:'Cinzel',serif;">${evt.title}</h3>
+                    </div>
+                  </div>
+                  <i data-lucide="chevron-down" class="chevron-icon flex-shrink-0 ${isExpanded ? 'rotated' : ''}" style="width:18px;height:18px;color:${meta.color};"></i>
+                </div>
+                <div class="card-content ${isExpanded ? 'expanded' : ''}" style="${isExpanded ? 'padding-top:0.75rem;' : ''}">
+                  <p class="text-sm leading-relaxed" style="color:${defaultConfig.muted_color};font-family:'Nunito',sans-serif;">${evt.summary}</p>
+                  <div class="mt-2 pt-2 text-xs leading-relaxed" style="border-top:1px solid ${meta.border};color:${defaultConfig.text_color};opacity:0.8;font-family:'Nunito',sans-serif;">${evt.detail}</div>
+                </div>
+              </div>
+            </div>`;
+        } else {
+          const cardSide = isLeft
+            ? `<div class="w-1/2 pr-8 text-right"><div class="event-card rounded-xl p-5 border inline-block text-left max-w-md ml-auto" style="background:${defaultConfig.card_color};border-color:${meta.border};" data-id="${evt.id}">
+                ${cardInner(evt, meta, isExpanded)}
+              </div></div><div class="w-1/2"></div>`
+            : `<div class="w-1/2"></div><div class="w-1/2 pl-8"><div class="event-card rounded-xl p-5 border max-w-md" style="background:${defaultConfig.card_color};border-color:${meta.border};" data-id="${evt.id}">
+                ${cardInner(evt, meta, isExpanded)}
+              </div></div>`;
+
+          wrapper.innerHTML = `
+            <div class="absolute left-1/2 top-3 w-5 h-5 rounded-full dot-pulse z-10" style="background:${meta.color};transform:translateX(-50%);border:3px solid ${defaultConfig.background_color};"></div>
+            <div class="flex w-full">${cardSide}</div>`;
+        }
+
+        container.appendChild(wrapper);
+      });
+
+      container.querySelectorAll(".event-card").forEach(card => {
+        card.addEventListener("click", () => {
+          const id = parseInt(card.dataset.id);
+          if (expandedCards.has(id)) expandedCards.delete(id); else expandedCards.add(id);
+          exploredEvents.add(id);
+          updateProgress();
+          renderTimeline();
+        });
+      });
+
+      lucide.createIcons();
+    }
+
+    function cardInner(evt, meta, isExpanded) {
+      return `
+        <div class="flex items-center justify-between gap-3">
+          <div class="flex items-center gap-3 min-w-0">
+            <div class="flex flex-col items-center gap-1 flex-shrink-0">
+              <span class="text-3xl">${evt.emoji}</span>
+              <span class="text-xs font-bold px-1.5 py-0.5 rounded" style="background:${meta.color};color:#fff;font-family:'Nunito',sans-serif;">#${evt.id}</span>
+            </div>
+            <div class="min-w-0">
+              <div class="flex items-center gap-2 flex-wrap">
+                <span class="civ-tag" style="background:${meta.bg};color:${meta.color};">${meta.name}</span>
+                <span class="text-xs" style="color:${defaultConfig.muted_color};font-family:'Nunito',sans-serif;">${evt.label}</span>
+              </div>
+              <h3 class="font-bold mt-1 leading-tight" style="font-family:'Cinzel',serif;">${evt.title}</h3>
+            </div>
+          </div>
+          <i data-lucide="chevron-down" class="chevron-icon flex-shrink-0 ${isExpanded ? 'rotated' : ''}" style="width:20px;height:20px;color:${meta.color};"></i>
+        </div>
+        <div class="card-content ${isExpanded ? 'expanded' : ''}" style="${isExpanded ? 'padding-top:0.75rem;' : ''}">
+          <p class="text-sm leading-relaxed" style="color:${defaultConfig.muted_color};font-family:'Nunito',sans-serif;">${evt.summary}</p>
+          <div class="mt-3 pt-3 text-xs leading-relaxed" style="border-top:1px solid ${meta.border};color:${defaultConfig.text_color};opacity:0.8;font-family:'Nunito',sans-serif;">${evt.detail}</div>
+        </div>`;
+    }
+
+    buildFilters();
+    renderTimeline();
+    updateProgress();
+    
+    // Tab switching for filter modes
+    document.getElementById("tab-civ").addEventListener("click", () => {
+      activeFilterMode = "civ";
+      document.querySelectorAll(".filter-type-tab").forEach(t => {
+        t.style.background = t === document.getElementById("tab-civ") ? "#d4af37" : "rgba(212,175,55,0.2)";
+        t.style.color = t === document.getElementById("tab-civ") ? "#1a1a2e" : "#d4af37";
+        t.classList.toggle("active", t === document.getElementById("tab-civ"));
+      });
+      buildFilters();
+      renderTimeline();
+    });
+
+    document.getElementById("tab-period").addEventListener("click", () => {
+      activeFilterMode = "period";
+      document.querySelectorAll(".filter-type-tab").forEach(t => {
+        t.style.background = t === document.getElementById("tab-period") ? "#d4af37" : "rgba(212,175,55,0.2)";
+        t.style.color = t === document.getElementById("tab-period") ? "#1a1a2e" : "#d4af37";
+        t.classList.toggle("active", t === document.getElementById("tab-period"));
+      });
+      buildFilters();
+      renderTimeline();
+    });
+
+    document.getElementById("tab-person").addEventListener("click", () => {
+      activeFilterMode = "person";
+      document.querySelectorAll(".filter-type-tab").forEach(t => {
+        t.style.background = t === document.getElementById("tab-person") ? "#d4af37" : "rgba(212,175,55,0.2)";
+        t.style.color = t === document.getElementById("tab-person") ? "#1a1a2e" : "#d4af37";
+        t.classList.toggle("active", t === document.getElementById("tab-person"));
+      });
+      buildFilters();
+      renderTimeline();
+    });
+    
+    {# document.getElementById("quiz-toggle-btn").addEventListener("click", showQuiz);
+    document.getElementById("quiz-close-btn").addEventListener("click", () => {
+      document.getElementById("quiz-modal").style.display = "none";
+    });
+    document.getElementById("quiz-modal").addEventListener("click", (e) => {
+      if (e.target.id === "quiz-modal") {
+        document.getElementById("quiz-modal").style.display = "none";
+      }
+    }); #}
+    
+    window.addEventListener("resize", renderTimeline);
+  </script>
+ <script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'9e525630e3bc5903',t:'MTc3NDk5MTM4My4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+</html>

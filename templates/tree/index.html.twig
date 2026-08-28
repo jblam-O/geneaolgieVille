@@ -1,0 +1,256 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Arbres genealogiques{% endblock %}
+
+{% block stylesheets %}
+    <style>
+        :root {
+            color-scheme: light;
+        }
+
+        body {
+            font-family: "Georgia", "Times New Roman", serif;
+            margin: 0;
+            background: #f6f2ea;
+            color: #2b2b2b;
+        }
+
+        .page {
+            max-width: 1100px;
+            margin: 0 auto;
+            padding: 32px 24px 64px;
+        }
+
+        h1 {
+            margin: 0 0 20px;
+            font-size: 32px;
+            letter-spacing: 0.5px;
+        }
+
+        .family-form {
+            display: flex;
+            gap: 12px;
+            align-items: center;
+            margin-bottom: 24px;
+            flex-wrap: wrap;
+        }
+
+        select {
+            padding: 8px 12px;
+            border-radius: 6px;
+            border: 1px solid #c8b79f;
+            background: #fff;
+        }
+
+        .trees {
+            display: grid;
+            gap: 24px;
+        }
+
+        .tree {
+            padding: 16px;
+            border-radius: 12px;
+            background: #fff;
+            border: 1px solid #e0d6c6;
+        }
+
+        .person-card {
+            background: #faf6ef;
+            border: 1px solid #e0d6c6;
+            padding: 10px 12px;
+            border-radius: 8px;
+            display: inline-block;
+            min-width: 220px;
+        }
+
+        .person-name {
+            font-weight: 700;
+            font-size: 16px;
+        }
+
+        .person-dates {
+            font-size: 13px;
+            color: #6b5d4b;
+        }
+
+        .union-list,
+        .children {
+            list-style: none;
+            padding-left: 20px;
+            margin: 12px 0 0;
+            border-left: 2px solid #e0d6c6;
+        }
+
+        .union-list > li {
+            margin-bottom: 12px;
+        }
+
+        .partners {
+            margin: 10px 0;
+            font-size: 14px;
+        }
+
+        .label {
+            font-weight: 600;
+            margin-right: 6px;
+        }
+
+        .partner {
+            display: inline-block;
+            margin-right: 8px;
+            padding: 4px 8px;
+            background: #efe6d7;
+            border-radius: 999px;
+        }
+
+        .generations {
+            display: flex;
+            flex-direction: column;
+            gap: 22px;
+        }
+
+        .generation {
+            padding-top: 8px;
+        }
+
+        .generation + .generation {
+            border-top: 2px solid #e0d6c6;
+            padding-top: 20px;
+        }
+
+        .generation-row {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 16px;
+            align-items: flex-start;
+        }
+
+        .action-link {
+            display: inline-block;
+            padding: 8px 14px;
+            border-radius: 999px;
+            border: 1px solid #bda890;
+            background: #efe6d7;
+            color: #2b2b2b;
+            text-decoration: none;
+            font-weight: 600;
+        }
+
+        .action-link:hover {
+            background: #e4d6c0;
+        }
+
+        @media (max-width: 720px) {
+            .person-card {
+                min-width: 0;
+                width: 100%;
+            }
+
+            .family-form {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+        }
+    </style>
+{% endblock %}
+
+{% block body %}
+    <div class="page">
+        <h1>Arbres genealogiques</h1>
+
+        {% if families is empty %}
+            <p>Aucune famille disponible.</p>
+        {% else %}
+            <form class="family-form" method="get">
+                <label for="family">Famille</label>
+                <select id="family" name="family" onchange="this.form.submit()">
+                    {% for family in families %}
+                        <option value="{{ family.id }}" {% if selectedFamily and family.id == selectedFamily.id %}selected{% endif %}>
+                            {{ family.name }}
+                        </option>
+                    {% endfor %}
+                </select>
+
+                <label for="view">Vue</label>
+                <select id="view" name="view" onchange="this.form.submit()">
+                    <option value="unions" {% if viewMode == 'unions' %}selected{% endif %}>Unions</option>
+                    <option value="parents" {% if viewMode == 'parents' %}selected{% endif %}>Parents / enfants</option>
+                </select>
+
+                <a class="action-link" href="{{ path('app_trees_custom') }}">Nouvelle vue</a>
+            </form>
+
+            {% if viewMode == 'parents' %}
+                {% if parentLevels is empty %}
+                    <p>Aucune personne pour cette famille.</p>
+                {% else %}
+                    <div class="tree">
+                        <div class="generations">
+                            {% for level in parentLevels %}
+                                <div class="generation">
+                                    <div class="generation-row">
+                                        {% for person in level %}
+                                            <div class="person-card">
+                                                <div class="person-name">{{ person.firstName }} {{ person.lastName }}</div>
+                                                <div class="person-dates">
+                                                    {{ person.birthdate|date('Y-m-d') }} - {{ person.deathdate|date('Y-m-d') }}
+                                                </div>
+                                            </div>
+                                        {% endfor %}
+                                    </div>
+                                </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                {% endif %}
+            {% else %}
+                {% if trees is empty %}
+                    <p>Aucune personne pour cette famille.</p>
+                {% else %}
+                    <div class="trees">
+                        {% for tree in trees %}
+                            <div class="tree">
+                                {{ _self.render_union_node(tree) }}
+                            </div>
+                        {% endfor %}
+                    </div>
+                {% endif %}
+            {% endif %}
+        {% endif %}
+    </div>
+{% endblock %}
+
+{% macro render_union_node(node) %}
+    <div class="person-card">
+        <div class="person-name">{{ node.person.firstName }} {{ node.person.lastName }}</div>
+        <div class="person-dates">
+            {{ node.person.birthdate|date('Y-m-d') }} - {{ node.person.deathdate|date('Y-m-d') }}
+        </div>
+    </div>
+
+    {% if node.unions is not empty %}
+        <ul class="union-list">
+            {% for union in node.unions %}
+                <li>
+                    {% if union.partners is not empty %}
+                        <div class="partners">
+                            <span class="label">Union:</span>
+                            {% for partner in union.partners %}
+                                <span class="partner">{{ partner.firstName }} {{ partner.lastName }}</span>
+                            {% endfor %}
+                        </div>
+                    {% endif %}
+
+                    {% if union.children is not empty %}
+                        <ul class="children">
+                            {% for child in union.children %}
+                                <li>{{ _self.render_union_node(child) }}</li>
+                            {% endfor %}
+                        </ul>
+                    {% endif %}
+                </li>
+            {% endfor %}
+        </ul>
+    {% endif %}
+{% endmacro %}
+
