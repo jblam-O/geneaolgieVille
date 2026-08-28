@@ -43,7 +43,7 @@ class Events
     private ?string $emoji = null;
 
     #[ORM\ManyToOne(inversedBy: 'events')]
-    private ?civilization $civilization = null;
+    private ?Civilization $civilization = null;
 
     public function __construct()
     {
@@ -163,12 +163,12 @@ class Events
         return $this;
     }
 
-    public function getCivilization(): ?civilization
+    public function getCivilization(): ?Civilization
     {
         return $this->civilization;
     }
 
-    public function setCivilization(?civilization $civilization): static
+    public function setCivilization(?Civilization $civilization): static
     {
         $this->civilization = $civilization;
 
