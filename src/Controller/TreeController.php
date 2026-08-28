@@ -6,6 +6,8 @@ use App\Entity\Person;
 use App\Repository\EventsRepository;
 use App\Repository\FamilyRepository;
 use App\Repository\PersonRepository;
+use App\Repository\CivilizationRepository;
+use App\Repository\PeriodRepository;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -70,7 +72,11 @@ class TreeController extends AbstractController
     }
 
     #[Route('/antics', name: 'app_antics')]
-    public function antics(EventsRepository $eventsRepository): Response
+    public function antics(
+        EventsRepository $eventsRepository,
+        CivilizationRepository $civilizationRepository,
+        PeriodRepository $periodRepository
+    ): Response
     {
         $events = [];
         foreach ($eventsRepository->findBy([], ['year' => 'ASC']) as $event) {
@@ -89,7 +95,7 @@ class TreeController extends AbstractController
                 'year' => $event->getYear(),
                 'label' => $event->getLabel(),
                 'civ' => $event->getCivilization()?->getName(),
-                'period' => $event->getPeriod(),
+                'period' => $event->getPeriod()?->getName(),
                 'persons' => $persons,
                 'title' => $event->getTitle(),
                 'summary' => $event->getSummary(),
@@ -98,89 +104,21 @@ class TreeController extends AbstractController
             ];
         }
 
-        // $civilizations = [
-        //     'egypt' => [
-        //         'name' => 'Egypte',
-        //         'color' => '#eba611',
-        //         'bg' => 'rgba(232,168,56,0.1)',
-        //         'border' => 'rgba(232,168,56,0.3)',
-        //     ],
-        //     'greece' => [
-        //         'name' => 'Grece',
-        //         'color' => '#5b9bd5',
-        //         'bg' => 'rgba(91,155,213,0.1)',
-        //         'border' => 'rgba(91,155,213,0.3)',
-        //     ],
-        //     'rome' => [
-        //         'name' => 'Rome',
-        //         'color' => '#c0504d',
-        //         'bg' => 'rgba(192,80,77,0.1)',
-        //         'border' => 'rgba(192,80,77,0.3)',
-        //     ],
-        //     'renaissance' => [
-        //         'name' => 'Renaissance',
-        //         'color' => '#8fbf7a',
-        //         'bg' => 'rgba(143,191,122,0.1)',
-        //         'border' => 'rgba(143,191,122,0.3)',
-        //     ],
-        // ];
+        $civilizations = [];
+        foreach ($civilizationRepository->findBy([], ['name' => 'ASC']) as $civilization) {
+            $civilizations[$civilization->getName()] = $this->buildTimelineMeta(
+                $civilization->getLabel() ?? $civilization->getName() ?? '',
+                $civilization->getColor() ?? '#d4af37'
+            );
+        }
 
-        $periods = [
-            'ancien' => [
-                'name' => 'Ancien Empire',
-                'color' => '#e8a838',
-                'bg' => 'rgba(232,168,56,0.1)',
-                'border' => 'rgba(232,168,56,0.3)',
-            ],
-            'moyen' => [
-                'name' => 'Moyen Empire',
-                'color' => '#e8a838',
-                'bg' => 'rgba(232,168,56,0.1)',
-                'border' => 'rgba(232,168,56,0.3)',
-            ],
-            'archaique' => [
-                'name' => 'Periode Archaique',
-                'color' => '#5b9bd5',
-                'bg' => 'rgba(91,155,213,0.1)',
-                'border' => 'rgba(91,155,213,0.3)',
-            ],
-            'classique' => [
-                'name' => 'Periode Classique',
-                'color' => '#5b9bd5',
-                'bg' => 'rgba(91,155,213,0.1)',
-                'border' => 'rgba(91,155,213,0.3)',
-            ],
-            'hellenistique' => [
-                'name' => 'Periode Hellenistique',
-                'color' => '#5b9bd5',
-                'bg' => 'rgba(91,155,213,0.1)',
-                'border' => 'rgba(91,155,213,0.3)',
-            ],
-            'royal' => [
-                'name' => 'Periode Royale',
-                'color' => '#c0504d',
-                'bg' => 'rgba(192,80,77,0.1)',
-                'border' => 'rgba(192,80,77,0.3)',
-            ],
-            'republique' => [
-                'name' => 'Republique',
-                'color' => '#c0504d',
-                'bg' => 'rgba(192,80,77,0.1)',
-                'border' => 'rgba(192,80,77,0.3)',
-            ],
-            'empire' => [
-                'name' => 'Empire',
-                'color' => '#c0504d',
-                'bg' => 'rgba(192,80,77,0.1)',
-                'border' => 'rgba(192,80,77,0.3)',
-            ],
-            'renaissance' => [
-                'name' => 'Renaissance',
-                'color' => '#8fbf7a',
-                'bg' => 'rgba(143,191,122,0.1)',
-                'border' => 'rgba(143,191,122,0.3)',
-            ],
-        ];
+        $periods = [];
+        foreach ($periodRepository->findBy([], ['name' => 'ASC']) as $period) {
+            $periods[$period->getName()] = $this->buildTimelineMeta(
+                $period->getLabel() ?? $period->getName() ?? '',
+                $period->getColor() ?? '#d4af37'
+            );
+        }
 
         // $quizQuestions = [
         //     [
@@ -274,6 +212,27 @@ class TreeController extends AbstractController
             'defaultConfig' => $defaultConfig,
             'uiText' => $uiText,
         ]);
+    }
+
+    /** @return array{name: string, color: string, bg: string, border: string} */
+    private function buildTimelineMeta(string $name, string $color): array
+    {
+        $hex = ltrim($color, '#');
+        if (!preg_match('/^[0-9a-fA-F]{6}$/', $hex)) {
+            $hex = 'd4af37';
+            $color = '#d4af37';
+        }
+
+        $red = hexdec(substr($hex, 0, 2));
+        $green = hexdec(substr($hex, 2, 2));
+        $blue = hexdec(substr($hex, 4, 2));
+
+        return [
+            'name' => $name,
+            'color' => $color,
+            'bg' => sprintf('rgba(%d,%d,%d,0.1)', $red, $green, $blue),
+            'border' => sprintf('rgba(%d,%d,%d,0.3)', $red, $green, $blue),
+        ];
     }
 
     /**

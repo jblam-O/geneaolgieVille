@@ -19,11 +19,12 @@ class Civilization
     private ?string $name = null;
 
     #[ORM\Column(length: 255)]
+    private ?string $label = null;
+
+    #[ORM\Column(length: 255)]
     private ?string $color = null;
 
-    /**
-     * @var Collection<int, Events>
-     */
+    /** @var Collection<int, Events> */
     #[ORM\OneToMany(targetEntity: Events::class, mappedBy: 'civilization')]
     private Collection $events;
 
@@ -32,42 +33,16 @@ class Civilization
         $this->events = new ArrayCollection();
     }
 
-    public function getId(): ?int
-    {
-        return $this->id;
-    }
+    public function getId(): ?int { return $this->id; }
+    public function getName(): ?string { return $this->name; }
+    public function setName(string $name): static { $this->name = $name; return $this; }
+    public function getLabel(): ?string { return $this->label; }
+    public function setLabel(string $label): static { $this->label = $label; return $this; }
+    public function getColor(): ?string { return $this->color; }
+    public function setColor(string $color): static { $this->color = $color; return $this; }
 
-    public function getName(): ?string
-    {
-        return $this->name;
-    }
-
-    public function setName(string $name): static
-    {
-        $this->name = $name;
-
-        return $this;
-    }
-
-    public function getColor(): ?string
-    {
-        return $this->color;
-    }
-
-    public function setColor(string $color): static
-    {
-        $this->color = $color;
-
-        return $this;
-    }
-
-    /**
-     * @return Collection<int, Events>
-     */
-    public function getEvents(): Collection
-    {
-        return $this->events;
-    }
+    /** @return Collection<int, Events> */
+    public function getEvents(): Collection { return $this->events; }
 
     public function addEvent(Events $event): static
     {
@@ -75,19 +50,14 @@ class Civilization
             $this->events->add($event);
             $event->setCivilization($this);
         }
-
         return $this;
     }
 
     public function removeEvent(Events $event): static
     {
-        if ($this->events->removeElement($event)) {
-            // set the owning side to null (unless already changed)
-            if ($event->getCivilization() === $this) {
-                $event->setCivilization(null);
-            }
+        if ($this->events->removeElement($event) && $event->getCivilization() === $this) {
+            $event->setCivilization(null);
         }
-
         return $this;
     }
 }

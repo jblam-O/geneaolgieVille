@@ -4,6 +4,7 @@ namespace App\DataFixtures;
 
 use App\Entity\Civilization;
 use App\Entity\Events;
+use App\Entity\Period;
 use App\Entity\Person;
 use Doctrine\Bundle\FixturesBundle\Fixture;
 use Doctrine\Persistence\ObjectManager;
@@ -23,9 +24,32 @@ class EventPersonsFixtures extends Fixture
         foreach ($civilizations as $key => $data) {
             $civilization = (new Civilization())
                 ->setName($key)
+                ->setLabel($data['name'])
                 ->setColor($data['color']);
             $manager->persist($civilization);
             $civilizationEntities[$key] = $civilization;
+        }
+
+        $periods = [
+            'ancien' => ['name' => 'Ancien Empire', 'color' => '#e8a838'],
+            'moyen' => ['name' => 'Moyen Empire', 'color' => '#e8a838'],
+            'archaique' => ['name' => 'Période archaïque', 'color' => '#5b9bd5'],
+            'classique' => ['name' => 'Période classique', 'color' => '#5b9bd5'],
+            'hellenistique' => ['name' => 'Période hellénistique', 'color' => '#5b9bd5'],
+            'royal' => ['name' => 'Période royale', 'color' => '#c0504d'],
+            'republique' => ['name' => 'République', 'color' => '#c0504d'],
+            'empire' => ['name' => 'Empire', 'color' => '#c0504d'],
+            'renaissance' => ['name' => 'Renaissance', 'color' => '#8fbf7a'],
+        ];
+
+        $periodEntities = [];
+        foreach ($periods as $key => $data) {
+            $period = (new Period())
+                ->setName($key)
+                ->setLabel($data['name'])
+                ->setColor($data['color']);
+            $manager->persist($period);
+            $periodEntities[$key] = $period;
         }
 
         $eventsData = [
@@ -191,7 +215,7 @@ class EventPersonsFixtures extends Fixture
                 ->setYear($eventData['year'])
                 ->setLabel($eventData['label'])
                 ->setCivilization($civilizationEntities[$eventData['civ']])
-                ->setPeriod($eventData['period'])
+                ->setPeriod($periodEntities[$eventData['period']])
                 ->setTitle($eventData['title'])
                 ->setSummary($eventData['summary'])
                 ->setDetail($eventData['detail'])

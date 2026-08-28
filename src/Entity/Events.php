@@ -21,8 +21,8 @@ class Events
     #[ORM\Column(length: 255)]
     private ?string $label = null;
 
-    #[ORM\Column(length: 255)]
-    private ?string $period = null;
+    #[ORM\ManyToOne(inversedBy: 'events')]
+    private ?Period $period = null;
 
     /**
      * @var Collection<int, Person>
@@ -79,12 +79,12 @@ class Events
         return $this;
     }
 
-    public function getPeriod(): ?string
+    public function getPeriod(): ?Period
     {
         return $this->period;
     }
 
-    public function setPeriod(string $period): static
+    public function setPeriod(?Period $period): static
     {
         $this->period = $period;
 
