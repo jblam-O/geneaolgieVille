@@ -55,9 +55,6 @@ class HistoryTownsController extends AbstractController
     #[Route('/historyTowns/geocode', name: 'app_history_towns_geocode', methods: ['GET'])]
     public function geocode(Request $request, Geocoder $geocoder): JsonResponse
     {
-        if (!$this->isCsrfTokenValid('geocode-town-event', $request->query->getString('_token'))) {
-            return $this->json(['error' => 'Jeton de formulaire invalide.'], 403);
-        }
         $town = trim($request->query->getString('town'));
         $address = trim($request->query->getString('address'));
         if ($town === '' || $address === '') {
