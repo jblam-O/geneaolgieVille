@@ -7,10 +7,8 @@ use App\Entity\TownEvent;
 use App\Entity\TownEventMedia;
 use App\Repository\TownRepository;
 use App\Service\Geocoder;
-use App\Service\MediaStorage;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
-use Symfony\Component\HttpFoundation\File\UploadedFile;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -97,7 +95,6 @@ class HistoryTownsController extends AbstractController
         Request $request,
         TownRepository $townRepository,
         EntityManagerInterface $entityManager,
-        MediaStorage $mediaStorage,
         Geocoder $geocoder,
         SluggerInterface $slugger,
     ): Response {
@@ -151,14 +148,6 @@ class HistoryTownsController extends AbstractController
             ->setTitle(mb_substr($title, 0, 180))->setSummary($summary)->setDetail($detail)
             ->setAddress(mb_substr($address, 0, 255))
             ->setLatitude($latitude)->setLongitude($longitude);
-
-        $files = $request->files->all('media');
-        foreach (array_slice($files, 0, 4) as $file) {
-            if (!$file instanceof UploadedFile || $file->getClientOriginalName() === '') { continue; }
-            $stored = $mediaStorage->store($file);
-            $event->addMedia((new TownEventMedia())->setType($stored['type'])->setUrl($stored['url'])
-                ->setOriginalName($stored['originalName'])->setMimeType($stored['mimeType']));
-        }
 
         $entityManager->persist($event);
         $entityManager->flush();

@@ -39,14 +39,14 @@
 
 <div id="detail-modal" class="modal" role="dialog" aria-modal="true"><div class="modal-card"><button class="close" data-close="detail-modal">×</button><div id="detail-content"></div></div></div>
 <div id="add-modal" class="modal" role="dialog" aria-modal="true"><div class="modal-card"><button class="close" data-close="add-modal">×</button><h2>Ajouter un événement</h2><p class="lead">Choisissez une ville existante ou saisissez-en une nouvelle.</p>
-  <form method="post" action="{{ path('app_history_towns_add') }}" enctype="multipart/form-data">
+  <form method="post" action="{{ path('app_history_towns_add') }}">
     <input type="hidden" name="_token" value="{{ csrf_token('add-town-event') }}"><input id="event-latitude" type="hidden" name="latitude"><input id="event-longitude" type="hidden" name="longitude">
     <div class="field"><label>Ville</label><input id="event-town" name="townName" list="town-options" maxlength="120" value="{{ town ? town.name : '' }}" placeholder="Ex. Lyon" required><datalist id="town-options">{% for item in towns %}<option value="{{ item.name }}">{% endfor %}</datalist></div>
     <div class="field"><label>Adresse de l’événement</label><div class="address-row"><input id="event-address" name="address" maxlength="255" placeholder="Ex. Place Bellecour, 69002" required><button id="geocode-button" class="btn" type="button">Localiser</button></div><div id="geo-status" class="geo-status">L’adresse sera convertie automatiquement en coordonnées.</div></div>
     <div id="event-location-map" aria-label="Position choisie pour l’événement"></div><p class="drag-help">Après localisation, cliquez sur la carte ou déplacez le marqueur pour affiner la position.</p>
     <div class="grid2"><div class="field"><label>Année</label><input name="year" type="number" min="-4000" max="2100" required></div><div class="field"><label>Libellé de date</label><input name="dateLabel" placeholder="14 juillet 1789"></div></div>
     <div class="field"><label>Titre</label><input name="title" maxlength="180" required></div><div class="field"><label>Résumé</label><textarea name="summary" required></textarea></div><div class="field"><label>Détails</label><textarea name="detail" required></textarea></div>
-    <div class="field"><label>Photos ou vidéos (4 fichiers, 4 Mo chacun maximum)</label><input name="media[]" type="file" accept="image/*,video/*" multiple></div><button class="btn primary" type="submit">Publier l’événement</button>
+    <button class="btn primary" type="submit">Publier l’événement</button>
   </form>
 </div></div>
 
