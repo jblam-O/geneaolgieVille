@@ -1,256 +1,106 @@
 {% extends 'base.html.twig' %}
 
-{% block title %}Arbres genealogiques{% endblock %}
+{% block title %}Arbre de {{ selectedFamily.name|default('famille') }}{% endblock %}
 
 {% block stylesheets %}
     <style>
-        :root {
-            color-scheme: light;
-        }
-
-        body {
-            font-family: "Georgia", "Times New Roman", serif;
-            margin: 0;
-            background: #f6f2ea;
-            color: #2b2b2b;
-        }
-
-        .page {
-            max-width: 1100px;
-            margin: 0 auto;
-            padding: 32px 24px 64px;
-        }
-
-        h1 {
-            margin: 0 0 20px;
-            font-size: 32px;
-            letter-spacing: 0.5px;
-        }
-
-        .family-form {
-            display: flex;
-            gap: 12px;
-            align-items: center;
-            margin-bottom: 24px;
-            flex-wrap: wrap;
-        }
-
-        select {
-            padding: 8px 12px;
-            border-radius: 6px;
-            border: 1px solid #c8b79f;
-            background: #fff;
-        }
-
-        .trees {
-            display: grid;
-            gap: 24px;
-        }
-
-        .tree {
-            padding: 16px;
-            border-radius: 12px;
-            background: #fff;
-            border: 1px solid #e0d6c6;
-        }
-
-        .person-card {
-            background: #faf6ef;
-            border: 1px solid #e0d6c6;
-            padding: 10px 12px;
-            border-radius: 8px;
-            display: inline-block;
-            min-width: 220px;
-        }
-
-        .person-name {
-            font-weight: 700;
-            font-size: 16px;
-        }
-
-        .person-dates {
-            font-size: 13px;
-            color: #6b5d4b;
-        }
-
-        .union-list,
-        .children {
-            list-style: none;
-            padding-left: 20px;
-            margin: 12px 0 0;
-            border-left: 2px solid #e0d6c6;
-        }
-
-        .union-list > li {
-            margin-bottom: 12px;
-        }
-
-        .partners {
-            margin: 10px 0;
-            font-size: 14px;
-        }
-
-        .label {
-            font-weight: 600;
-            margin-right: 6px;
-        }
-
-        .partner {
-            display: inline-block;
-            margin-right: 8px;
-            padding: 4px 8px;
-            background: #efe6d7;
-            border-radius: 999px;
-        }
-
-        .generations {
-            display: flex;
-            flex-direction: column;
-            gap: 22px;
-        }
-
-        .generation {
-            padding-top: 8px;
-        }
-
-        .generation + .generation {
-            border-top: 2px solid #e0d6c6;
-            padding-top: 20px;
-        }
-
-        .generation-row {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 16px;
-            align-items: flex-start;
-        }
-
-        .action-link {
-            display: inline-block;
-            padding: 8px 14px;
-            border-radius: 999px;
-            border: 1px solid #bda890;
-            background: #efe6d7;
-            color: #2b2b2b;
-            text-decoration: none;
-            font-weight: 600;
-        }
-
-        .action-link:hover {
-            background: #e4d6c0;
-        }
-
-        @media (max-width: 720px) {
-            .person-card {
-                min-width: 0;
-                width: 100%;
-            }
-
-            .family-form {
-                flex-direction: column;
-                align-items: flex-start;
-            }
-        }
+        :root { color-scheme: light; }
+        body { margin: 0; background: #f5efe4; color: #32271f; font-family: Georgia, "Times New Roman", serif; }
+        .page { max-width: 1440px; margin: 0 auto; padding: 28px 22px 64px; }
+        .topbar { display: flex; justify-content: space-between; align-items: center; gap: 16px; flex-wrap: wrap; margin-bottom: 22px; }
+        h1 { margin: 0; font-size: clamp(30px, 4vw, 48px); }
+        .subtitle { margin: 7px 0 0; color: #77695c; }
+        .actions { display: flex; gap: 10px; flex-wrap: wrap; }
+        .action-link { display: inline-block; padding: 9px 14px; border-radius: 999px; border: 1px solid #d9c6aa; background: #fffaf0; color: #9a5f2d; text-decoration: none; font-weight: 700; }
+        .action-link.logout { background: #9a5f2d; color: #fff9ef; border-color: #9a5f2d; }
+        .family-form { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; margin-bottom: 24px; }
+        select { padding: 9px 12px; border-radius: 9px; border: 1px solid #d9c6aa; background: #fff9ef; font: inherit; }
+        .tree-shell { overflow-x: auto; padding: 34px 24px 48px; border: 1px solid #d9c6aa; border-radius: 26px; background: radial-gradient(circle at 50% 0, #fffaf0 0, #fbf3e6 72%); box-shadow: 0 20px 50px rgba(77, 52, 18, .09); }
+        .tree-forest { display: flex; justify-content: center; align-items: flex-start; gap: 70px; min-width: max-content; }
+        .tree-root { display: flex; flex-direction: column; align-items: center; min-width: 290px; }
+        .branch { position: relative; display: flex; flex-direction: column; align-items: center; padding-top: 34px; }
+        .branch::before { content: ""; position: absolute; top: 0; left: 50%; height: 34px; border-left: 2px solid #c29562; }
+        .couple { display: flex; align-items: center; gap: 10px; position: relative; }
+        .couple::after { content: ""; position: absolute; left: calc(50% - 5px); right: calc(50% - 5px); top: 50%; border-top: 2px solid #c29562; z-index: 0; }
+        .person-card { position: relative; z-index: 1; width: 210px; box-sizing: border-box; padding: 14px 16px; border: 1px solid #d9c6aa; border-radius: 15px; background: #fff9ef; box-shadow: 0 8px 18px rgba(77, 52, 18, .10); }
+        .person-card.family { border-top: 4px solid #9a5f2d; }
+        .person-card.external { border-style: dashed; background: #fbf3e6; }
+        .person-name { font-weight: 700; font-size: 17px; }
+        .person-dates { margin-top: 5px; color: #77695c; font-size: 13px; }
+        .external-label { display: block; margin-top: 8px; color: #9a5f2d; font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: .08em; }
+        .children-row { position: relative; display: flex; justify-content: center; gap: 28px; padding-top: 50px; }
+        .children-row::before { content: ""; position: absolute; top: 17px; left: 8%; right: 8%; border-top: 2px solid #c29562; }
+        .children-row > .branch::before { height: 33px; }
+        .empty { padding: 20px; border-radius: 14px; background: #eadbc6; color: #9a5f2d; }
+        @media (max-width: 700px) { .page { padding-inline: 14px; } .tree-shell { padding-inline: 12px; } .tree-forest { gap: 35px; } .person-card { width: 180px; } }
     </style>
 {% endblock %}
 
 {% block body %}
-    <div class="page">
-        <h1>Arbres genealogiques</h1>
+    <main class="page">
+        <div class="topbar">
+            <div>
+                <h1>{{ selectedFamily.name|default('Arbre généalogique') }}</h1>
+                <p class="subtitle">Les ancêtres sont en haut, les descendants se déploient par générations.</p>
+            </div>
+            <div class="actions">
+                <a class="action-link" href="{{ path('app_trees') }}">Changer de famille</a>
+            </div>
+        </div>
 
         {% if families is empty %}
-            <p>Aucune famille disponible.</p>
+            <p class="empty">Aucune famille disponible.</p>
         {% else %}
             <form class="family-form" method="get">
                 <label for="family">Famille</label>
                 <select id="family" name="family" onchange="this.form.submit()">
                     {% for family in families %}
-                        <option value="{{ family.id }}" {% if selectedFamily and family.id == selectedFamily.id %}selected{% endif %}>
-                            {{ family.name }}
-                        </option>
+                        <option value="{{ family.id }}" {% if selectedFamily and family.id == selectedFamily.id %}selected{% endif %}>{{ family.name }}</option>
                     {% endfor %}
                 </select>
-
-                <label for="view">Vue</label>
-                <select id="view" name="view" onchange="this.form.submit()">
-                    <option value="unions" {% if viewMode == 'unions' %}selected{% endif %}>Unions</option>
-                    <option value="parents" {% if viewMode == 'parents' %}selected{% endif %}>Parents / enfants</option>
-                </select>
-
-                <a class="action-link" href="{{ path('app_trees_custom') }}">Nouvelle vue</a>
             </form>
 
-            {% if viewMode == 'parents' %}
-                {% if parentLevels is empty %}
-                    <p>Aucune personne pour cette famille.</p>
-                {% else %}
-                    <div class="tree">
-                        <div class="generations">
-                            {% for level in parentLevels %}
-                                <div class="generation">
-                                    <div class="generation-row">
-                                        {% for person in level %}
-                                            <div class="person-card">
-                                                <div class="person-name">{{ person.firstName }} {{ person.lastName }}</div>
-                                                <div class="person-dates">
-                                                    {{ person.birthdate|date('Y-m-d') }} - {{ person.deathdate|date('Y-m-d') }}
-                                                </div>
-                                            </div>
-                                        {% endfor %}
-                                    </div>
-                                </div>
-                            {% endfor %}
-                        </div>
-                    </div>
-                {% endif %}
+            {% if trees is empty %}
+                <p class="empty">Aucune personne pour cette famille.</p>
             {% else %}
-                {% if trees is empty %}
-                    <p>Aucune personne pour cette famille.</p>
-                {% else %}
-                    <div class="trees">
+                <section class="tree-shell" aria-label="Arbre généalogique">
+                    <div class="tree-forest">
                         {% for tree in trees %}
-                            <div class="tree">
-                                {{ _self.render_union_node(tree) }}
-                            </div>
+                            <div class="tree-root">{{ _self.render_union_node(tree) }}</div>
+                        {% endfor %}
+                    </div>
+                </section>
+            {% endif %}
+        {% endif %}
+    </main>
+{% endblock %}
+
+{% macro render_person(person, external) %}
+    <div class="person-card {{ external ? 'external' : 'family' }}">
+        <div class="person-name">{{ person.firstName }} {{ person.lastName }}</div>
+        <div class="person-dates">{{ person.birthdate|date('Y') }} - {{ person.deathdate|date('Y') }}</div>
+        {% if external %}<span class="external-label">Union extérieure</span>{% endif %}
+    </div>
+{% endmacro %}
+
+{% macro render_union_node(node) %}
+    {% if node.unions is empty %}
+        {{ _self.render_person(node.person, false) }}
+    {% else %}
+        {% for union in node.unions %}
+            <div class="branch">
+                <div class="couple">
+                    {{ _self.render_person(node.person, false) }}
+                    {% for partner in union.partners %}{{ _self.render_person(partner.person, partner.external) }}{% endfor %}
+                </div>
+                {% if union.children is not empty %}
+                    <div class="children-row">
+                        {% for child in union.children %}
+                            <div class="branch">{{ _self.render_union_node(child) }}</div>
                         {% endfor %}
                     </div>
                 {% endif %}
-            {% endif %}
-        {% endif %}
-    </div>
-{% endblock %}
-
-{% macro render_union_node(node) %}
-    <div class="person-card">
-        <div class="person-name">{{ node.person.firstName }} {{ node.person.lastName }}</div>
-        <div class="person-dates">
-            {{ node.person.birthdate|date('Y-m-d') }} - {{ node.person.deathdate|date('Y-m-d') }}
-        </div>
-    </div>
-
-    {% if node.unions is not empty %}
-        <ul class="union-list">
-            {% for union in node.unions %}
-                <li>
-                    {% if union.partners is not empty %}
-                        <div class="partners">
-                            <span class="label">Union:</span>
-                            {% for partner in union.partners %}
-                                <span class="partner">{{ partner.firstName }} {{ partner.lastName }}</span>
-                            {% endfor %}
-                        </div>
-                    {% endif %}
-
-                    {% if union.children is not empty %}
-                        <ul class="children">
-                            {% for child in union.children %}
-                                <li>{{ _self.render_union_node(child) }}</li>
-                            {% endfor %}
-                        </ul>
-                    {% endif %}
-                </li>
-            {% endfor %}
-        </ul>
+            </div>
+        {% endfor %}
     {% endif %}
 {% endmacro %}
-

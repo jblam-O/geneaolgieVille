@@ -26,14 +26,15 @@ class HistoryTownsController extends AbstractController
         $town ??= $towns[0] ?? null;
 
         $events = [];
-        if ($town instanceof Town) {
-            foreach ($town->getEvents() as $event) {
+        foreach ($towns as $eventTown) {
+            foreach ($eventTown->getEvents() as $event) {
                 $events[] = [
                     'id' => $event->getId(), 'year' => $event->getYear(), 'dateLabel' => $event->getDateLabel(),
                     'title' => $event->getTitle(), 'summary' => $event->getSummary(), 'detail' => $event->getDetail(),
                     'address' => $event->getAddress(),
-                    'latitude' => $event->getLatitude() ?? $town->getLatitude(),
-                    'longitude' => $event->getLongitude() ?? $town->getLongitude(),
+                    'townName' => $eventTown->getName(), 'townSlug' => $eventTown->getSlug(),
+                    'latitude' => $event->getLatitude() ?? $eventTown->getLatitude(),
+                    'longitude' => $event->getLongitude() ?? $eventTown->getLongitude(),
                     'media' => array_map(static fn (TownEventMedia $media): array => [
                         'type' => $media->getType(), 'url' => $media->getUrl(), 'name' => $media->getOriginalName(),
                     ], $event->getMedia()->toArray()),

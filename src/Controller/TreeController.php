@@ -12,28 +12,39 @@ use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
+use Symfony\Component\Security\Http\Authentication\AuthenticationUtils;
 
 class TreeController extends AbstractController
 {
     #[Route('/', name: 'app_home')]
     public function home(): Response
     {
-        return $this->redirectToRoute('app_trees');
+        return $this->render('home/index.html.twig');
     }
 
-    #[Route('/trees', name: 'app_trees')]
+    #[Route('/visualisation', name: 'app_visualisation')]
+    public function visualisation(): Response
+    {
+        return $this->render('tree/visualisation.html.twig');
+    }
+
+    #[Route('/families', name: 'app_trees')]
     public function index(
         Request $request,
         FamilyRepository $familyRepository,
         PersonRepository $personRepository
     ): Response {
-        $families = $familyRepository->findBy([], ['name' => 'ASC']);
-        if ($families === []) {
-            return $this->render('tree/index.html.twig', [
-                'families' => [],
-                'selectedFamily' => null,
-                'trees' => [],
+        $user = $this->getUser();
+        $accountIdentifier = $user?->getUserIdentifier();
+        $families = $accountIdentifier ? $familyRepository->findForAccount($accountIdentifier) : [];
+        if ($request->query->get('family') === null) {
+            return $this->render('tree/select.html.twig', [
+                'families' => $families,
             ]);
+        }
+
+        if ($families === []) {
+            return $this->render('tree/select.html.twig', ['families' => []]);
         }
 
         $selectedId = $request->query->getInt('family');
@@ -41,9 +52,12 @@ class TreeController extends AbstractController
         if (!in_array($viewMode, ['unions', 'parents'], true)) {
             $viewMode = 'unions';
         }
-        $selectedFamily = $selectedId ? $familyRepository->find($selectedId) : null;
+        $selectedFamily = $selectedId ? $familyRepository->findOneBy([
+            'id' => $selectedId,
+            'accountIdentifier' => $accountIdentifier,
+        ]) : null;
         if ($selectedFamily === null) {
-            $selectedFamily = $families[0];
+            return $this->redirectToRoute('app_trees');
         }
 
         $familyPeople = $personRepository->findBy(['family' => $selectedFamily]);
@@ -63,6 +77,25 @@ class TreeController extends AbstractController
             'trees' => $trees,
             'parentLevels' => $parentLevels,
         ]);
+    }
+
+    #[Route('/login', name: 'app_login')]
+    public function login(AuthenticationUtils $authenticationUtils): Response
+    {
+        if ($this->getUser()) {
+            return $this->redirectToRoute('app_trees');
+        }
+
+        return $this->render('security/login.html.twig', [
+            'last_username' => $authenticationUtils->getLastUsername(),
+            'error' => $authenticationUtils->getLastAuthenticationError(),
+        ]);
+    }
+
+    #[Route('/logout', name: 'app_logout')]
+    public function logout(): void
+    {
+        throw new \LogicException('This method can be blank - it will be intercepted by the logout key on your firewall.');
     }
 
     #[Route('/trees/custom', name: 'app_trees_custom')]
@@ -214,6 +247,7 @@ class TreeController extends AbstractController
         ]);
     }
 
+
     /** @return array{name: string, color: string, bg: string, border: string} */
     private function buildTimelineMeta(string $name, string $color): array
     {
@@ -241,6 +275,11 @@ class TreeController extends AbstractController
      */
     private function buildUnionTrees(array $familyPeople): array
     {
+        $familyIds = [];
+        foreach ($familyPeople as $familyPerson) {
+            $familyIds[$familyPerson->getId() ?? spl_object_id($familyPerson)] = true;
+        }
+
         $roots = [];
         foreach ($familyPeople as $person) {
             if ($person->getChildishUnion() === null) {
@@ -252,10 +291,15 @@ class TreeController extends AbstractController
             $roots = $familyPeople;
         }
 
+        usort($roots, static function (Person $left, Person $right): int {
+            return ($left->getBirthdate()?->getTimestamp() ?? PHP_INT_MAX)
+                <=> ($right->getBirthdate()?->getTimestamp() ?? PHP_INT_MAX);
+        });
+
         $visited = [];
         $trees = [];
         foreach ($roots as $root) {
-            $trees[] = $this->buildUnionTree($root, $visited);
+            $trees[] = $this->buildUnionTree($root, $visited, $familyIds);
         }
 
         return $trees;
@@ -320,7 +364,7 @@ class TreeController extends AbstractController
      * @param array<int, bool> $visited
      * @return array{person: Person, unions: array<int, array{partners: array<int, Person>, children: array<int, array>}>}
      */
-    private function buildUnionTree(Person $person, array &$visited): array
+    private function buildUnionTree(Person $person, array &$visited, array $familyIds): array
     {
         $personId = $person->getId() ?? spl_object_id($person);
         if (isset($visited[$personId])) {
@@ -337,13 +381,20 @@ class TreeController extends AbstractController
             $partners = [];
             foreach ($union->getPerson1() as $partner) {
                 if ($partner !== $person) {
-                    $partners[] = $partner;
+                    $partnerId = $partner->getId() ?? spl_object_id($partner);
+                    $partners[] = [
+                        'person' => $partner,
+                        'external' => !isset($familyIds[$partnerId]),
+                    ];
                 }
             }
 
             $children = [];
             foreach ($union->getChildren() as $child) {
-                $children[] = $this->buildUnionTree($child, $visited);
+                $childId = $child->getId() ?? spl_object_id($child);
+                if (isset($familyIds[$childId])) {
+                    $children[] = $this->buildUnionTree($child, $visited, $familyIds);
+                }
             }
 
             $unionsData[] = [

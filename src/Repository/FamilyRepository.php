@@ -16,6 +16,14 @@ class FamilyRepository extends ServiceEntityRepository
         parent::__construct($registry, Family::class);
     }
 
+    /**
+     * @return list<Family>
+     */
+    public function findForAccount(string $accountIdentifier): array
+    {
+        return $this->findBy(['accountIdentifier' => $accountIdentifier], ['name' => 'ASC']);
+    }
+
 //    /**
 //     * @return Family[] Returns an array of Family objects
 //     */

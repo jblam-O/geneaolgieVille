@@ -20,3 +20,7 @@
 ###< symfony/asset-mapper ###
 
 /public/uploads/
+node_modules/
+public/genealogy/
+.vercel
+.env*

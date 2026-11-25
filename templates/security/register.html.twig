@@ -1,0 +1,123 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Créer un compte{% endblock %}
+
+{% block stylesheets %}
+    <style>
+        body {
+            margin: 0;
+            font-family: "Georgia", "Times New Roman", serif;
+            background: #f5efe4;
+            color: #32271f;
+        }
+
+        .wrap {
+            min-height: 100vh;
+            display: grid;
+            place-items: center;
+            padding: 24px;
+        }
+
+        .panel {
+            width: min(600px, 100%);
+            background: #fffaf0;
+            border: 1px solid #d9c6aa;
+            border-radius: 22px;
+            padding: 34px;
+            box-shadow: 0 18px 48px rgba(77, 52, 18, 0.10);
+        }
+
+        h1 {
+            margin: 0 0 12px;
+            font-size: 34px;
+        }
+
+        p {
+            margin: 0 0 22px;
+            color: #77695c;
+            line-height: 1.5;
+        }
+
+        label {
+            display: block;
+            margin: 16px 0 8px;
+            font-weight: 700;
+        }
+
+        input {
+            width: 100%;
+            box-sizing: border-box;
+            padding: 12px 14px;
+            border: 1px solid #d9c6aa;
+            border-radius: 12px;
+            font: inherit;
+            background: #fff9ef;
+        }
+
+        .actions {
+            margin-top: 22px;
+            display: flex;
+            justify-content: space-between;
+            gap: 12px;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+
+        button {
+            border: 0;
+            border-radius: 999px;
+            padding: 12px 18px;
+            background: #9a5f2d;
+            color: #fff9ef;
+            font: inherit;
+            font-weight: 700;
+            cursor: pointer;
+        }
+
+        .error {
+            margin: 0 0 16px;
+            padding: 12px 14px;
+            border-radius: 12px;
+            background: #fce9e5;
+            color: #8f2d2d;
+        }
+
+        .back {
+            display: inline-block;
+            margin-top: 18px;
+            color: #9a5f2d;
+            font-weight: 700;
+            text-decoration: none;
+        }
+    </style>
+{% endblock %}
+
+{% block body %}
+    <main class="wrap">
+        <section class="panel">
+            <h1>Créer un compte</h1>
+            <p>Le compte créé sera lié à une nouvelle famille visible uniquement après connexion.</p>
+
+            {% if error %}
+                <div class="error">{{ error }}</div>
+            {% endif %}
+
+            <form method="post">
+                <label for="username">Nom de compte</label>
+                <input type="text" id="username" name="username" value="{{ username }}" autocomplete="username" required>
+
+                <label for="password">Mot de passe</label>
+                <input type="password" id="password" name="password" autocomplete="new-password" required>
+
+                <label for="familyName">Nom de la famille</label>
+                <input type="text" id="familyName" name="familyName" value="{{ family_name }}" required>
+
+                <div class="actions">
+                    <button type="submit">Créer le compte et la famille</button>
+                </div>
+            </form>
+
+            <a class="back" href="{{ path('app_login') }}">Retour à la connexion</a>
+        </section>
+    </main>
+{% endblock %}

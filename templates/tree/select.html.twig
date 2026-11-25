@@ -1,0 +1,51 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Choisir une famille{% endblock %}
+
+{% block stylesheets %}
+    <style>
+        body { margin: 0; background: #f5efe4; color: #32271f; font-family: Georgia, "Times New Roman", serif; }
+        .wrap { min-height: 100vh; display: grid; place-items: center; padding: 28px 20px; }
+        .panel { width: min(820px, 100%); background: #fffaf0; border: 1px solid #d9c6aa; border-radius: 26px; padding: 38px; box-shadow: 0 22px 54px rgba(77, 52, 18, .10); }
+        .eyebrow { color: #9a5f2d; font-size: 12px; letter-spacing: .16em; text-transform: uppercase; }
+        h1 { margin: 12px 0 10px; font-size: clamp(32px, 5vw, 48px); }
+        .intro { color: #77695c; line-height: 1.55; margin-bottom: 28px; }
+        .families { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 16px; }
+        .family { display: block; padding: 22px; border: 1px solid #d9c6aa; border-radius: 18px; background: linear-gradient(180deg, #fff9ef, #fbf3e6); color: inherit; text-decoration: none; transition: transform .18s ease, box-shadow .18s ease; }
+        .family:hover { transform: translateY(-3px); box-shadow: 0 14px 28px rgba(77, 52, 18, .12); }
+        .family strong { display: block; font-size: 22px; margin-bottom: 8px; }
+        .family span { color: #77695c; font-size: 14px; }
+        .empty { padding: 18px; border-radius: 14px; background: #fce9e5; color: #8f2d2d; }
+        .links { display: flex; gap: 14px; flex-wrap: wrap; margin-top: 28px; }
+        .back, .logout { display: inline-block; color: #9a5f2d; font-weight: 700; text-decoration: none; }
+        .logout { padding: 9px 14px; border-radius: 999px; color: #fff9ef; background: #9a5f2d; }
+    </style>
+{% endblock %}
+
+{% block body %}
+    <main class="wrap">
+        <section class="panel">
+            <div class="eyebrow">Espace familles</div>
+            <h1>Choisissez une famille</h1>
+            <p class="intro">Sélectionnez une famille liée à votre compte pour ouvrir son arbre généalogique.</p>
+
+            {% if families is empty %}
+                <div class="empty">Aucune famille n’est encore liée à ce compte.</div>
+            {% else %}
+                <div class="families">
+                    {% for family in families %}
+                        <a class="family" href="{{ path('app_visualisation', {family: family.id}) }}">
+                            <strong>{{ family.name }}</strong>
+                            <span>Ouvrir la visualisation interactive</span>
+                        </a>
+                    {% endfor %}
+                </div>
+            {% endif %}
+
+            <div class="links">
+                <a class="back" href="{{ path('app_home') }}">Retour à l’accueil</a>
+                <a class="logout" href="{{ path('app_logout') }}">Se déconnecter</a>
+            </div>
+        </section>
+    </main>
+{% endblock %}

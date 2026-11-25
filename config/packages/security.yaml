@@ -5,7 +5,10 @@ security:
 
     # https://symfony.com/doc/current/security.html#loading-the-user-the-user-provider
     providers:
-        users_in_memory: { memory: null }
+        app_user_provider:
+            entity:
+                class: App\Entity\User
+                property: username
 
     firewalls:
         dev:
@@ -14,7 +17,18 @@ security:
             security: false
         main:
             lazy: true
-            provider: users_in_memory
+            provider: app_user_provider
+            entry_point: App\Security\HomeAuthenticationEntryPoint
+            form_login:
+                login_path: app_home
+                check_path: app_login
+                enable_csrf: true
+                csrf_token_id: authenticate
+                failure_path: app_login
+                default_target_path: app_trees
+            logout:
+                path: app_logout
+                target: app_home
 
             # Activate different ways to authenticate:
             # https://symfony.com/doc/current/security.html#the-firewall
@@ -24,7 +38,10 @@ security:
 
     # Note: Only the *first* matching rule is applied
     access_control:
-        # - { path: ^/admin, roles: ROLE_ADMIN }
+        - { path: ^/api, roles: ROLE_FAMILY }
+        - { path: ^/visualisation, roles: ROLE_FAMILY }
+        - { path: ^/families, roles: ROLE_FAMILY }
+        - { path: ^/trees, roles: ROLE_FAMILY }
         # - { path: ^/profile, roles: ROLE_USER }
 
 when@test:

@@ -1,0 +1,19 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Atelier généalogique{% endblock %}
+
+{% block stylesheets %}
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta name="theme-color" content="#9a5f2d">
+        <link rel="manifest" href="/genealogy/manifest.webmanifest">
+        <link rel="apple-touch-icon" href="/genealogy/icon-192.png">
+        <link rel="stylesheet" href="/genealogy/assets/index.css?v=20260929-11">
+{% endblock %}
+
+{% block javascripts %}
+        <script type="module" src="/genealogy/assets/app.js?v=20260929-11"></script>
+{% endblock %}
+
+{% block body %}
+    <div id="genealogy-root" data-account="{{ app.user.userIdentifier|e('html_attr') }}"></div>
+{% endblock %}

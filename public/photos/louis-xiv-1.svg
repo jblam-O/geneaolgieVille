@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640">
+  <rect width="640" height="640" fill="#f5efe4"/>
+  <circle cx="320" cy="252" r="118" fill="#eadbc6"/>
+  <path d="M181 264c35-132 244-132 278 0 32-30 48-76 17-117-35-47-104-36-156-36s-121-11-156 36c-31 41-15 87 17 117Z" fill="#fff9ef"/>
+  <path d="M178 540c22-112 91-171 142-171s120 59 142 171H178Z" fill="#9a5f2d"/>
+  <path d="M230 520h180l-32-118-58 55-58-55-32 118Z" fill="#c29562"/>
+  <circle cx="278" cy="247" r="11" fill="#32271f"/>
+  <circle cx="362" cy="247" r="11" fill="#32271f"/>
+  <path d="M286 312c24 20 45 20 68 0" fill="none" stroke="#32271f" stroke-width="13" stroke-linecap="round"/>
+  <text x="320" y="604" text-anchor="middle" font-family="Georgia, serif" font-size="35" fill="#32271f">Portrait royal</text>
+</svg>

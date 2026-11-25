@@ -1,0 +1,430 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Accueil - Généalogie{% endblock %}
+
+{% block stylesheets %}
+    <style>
+        :root {
+            color-scheme: light;
+            --bg: #f5efe4;
+            --panel: #fffaf0;
+            --panel-strong: #eadbc6;
+            --text: #32271f;
+            --muted: #77695c;
+            --accent: #9a5f2d;
+            --accent-soft: #c29562;
+            --line: #d9c6aa;
+        }
+
+        body {
+            margin: 0;
+            font-family: "Georgia", "Times New Roman", serif;
+            background:
+                radial-gradient(circle at 16% 18%, rgba(194, 149, 98, 0.24), transparent 28%),
+                radial-gradient(circle at 82% 8%, rgba(154, 95, 45, 0.12), transparent 24%),
+                linear-gradient(135deg, rgba(255, 250, 240, 0.78), rgba(234, 219, 198, 0.56)),
+                var(--bg);
+            color: var(--text);
+            overflow: hidden;
+        }
+
+        .account-bar {
+            display: none;
+        }
+
+        .shell {
+            height: 100vh;
+            display: grid;
+            grid-template-rows: auto 1fr auto;
+            gap: clamp(18px, 3vw, 34px);
+            padding: clamp(22px, 4vw, 52px);
+        }
+
+        .topline {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 18px;
+            color: var(--muted);
+            font-size: 14px;
+        }
+
+        .brand {
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            color: var(--text);
+            font-weight: 700;
+        }
+
+        .brand-mark {
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            border: 1px solid var(--accent-soft);
+            background: var(--panel);
+            position: relative;
+        }
+
+        .brand-mark::before,
+        .brand-mark::after {
+            content: "";
+            position: absolute;
+            background: var(--accent);
+            border-radius: 999px;
+        }
+
+        .brand-mark::before {
+            width: 2px;
+            height: 15px;
+            left: 13px;
+            top: 6px;
+        }
+
+        .brand-mark::after {
+            width: 14px;
+            height: 2px;
+            left: 7px;
+            top: 13px;
+        }
+
+        .nav {
+            display: flex;
+            gap: 18px;
+            flex-wrap: wrap;
+            justify-content: flex-end;
+        }
+
+        .hero {
+            align-self: center;
+            display: grid;
+            grid-template-columns: minmax(0, 0.95fr) minmax(320px, 0.82fr);
+            gap: clamp(28px, 6vw, 78px);
+            align-items: center;
+        }
+
+        .eyebrow {
+            text-transform: uppercase;
+            letter-spacing: 0.18em;
+            font-size: 12px;
+            color: var(--accent);
+            margin-bottom: 14px;
+        }
+
+        h1 {
+            margin: 0;
+            max-width: 850px;
+            font-size: clamp(42px, 7vw, 86px);
+            line-height: 0.94;
+        }
+
+        .intro {
+            max-width: 650px;
+            margin: 24px 0 0;
+            font-size: clamp(17px, 1.65vw, 22px);
+            line-height: 1.5;
+            color: var(--muted);
+        }
+
+        .choices {
+            display: grid;
+            gap: 14px;
+        }
+
+        .side-stack {
+            display: grid;
+            gap: 18px;
+        }
+
+        .choice {
+            display: flex;
+            align-items: flex-start;
+            gap: 18px;
+            padding: 22px;
+            border-radius: 16px;
+            border: 1px solid var(--line);
+            background: rgba(255, 250, 240, 0.62);
+            text-decoration: none;
+            color: inherit;
+            transition: transform 180ms ease, box-shadow 180ms ease, border-color 180ms ease;
+            min-height: 0;
+        }
+
+        .choice:hover {
+            transform: translateY(-3px);
+            border-color: var(--accent-soft);
+            box-shadow: 0 18px 34px rgba(77, 52, 18, 0.10);
+        }
+
+        .choice h2 {
+            margin: 0;
+            font-size: clamp(22px, 2vw, 30px);
+        }
+
+        .choice p {
+            margin: 7px 0 0;
+            color: var(--muted);
+            line-height: 1.45;
+            font-size: 15px;
+        }
+
+        .choice-text {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .choice .meta,
+        .choice-arrow {
+            margin-top: auto;
+            font-weight: 700;
+            color: var(--accent);
+        }
+
+        .badge {
+            flex: 0 0 auto;
+            padding: 7px 12px;
+            border-radius: 8px;
+            background: var(--panel-strong);
+            color: var(--accent);
+            font-size: 13px;
+            font-weight: 700;
+        }
+
+        .choice.private {
+            background: rgba(234, 219, 198, 0.58);
+        }
+
+        .demo-area {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            flex-wrap: wrap;
+            margin-top: 24px;
+        }
+
+        .login-link {
+            color: var(--accent);
+            font-weight: 700;
+            text-decoration: none;
+        }
+
+        .demo-form {
+            margin: 0;
+        }
+
+        .demo-button {
+            border: 0;
+            border-radius: 10px;
+            padding: 13px 18px;
+            background: var(--accent);
+            color: #fff9ef;
+            font: inherit;
+            font-weight: 700;
+            cursor: pointer;
+        }
+
+        .footnote {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 18px;
+            color: var(--muted);
+            font-size: 13px;
+        }
+
+        .tree-mark {
+            position: relative;
+            min-height: 250px;
+        }
+
+        .tree-line {
+            position: absolute;
+            background: var(--accent-soft);
+            opacity: 0.72;
+        }
+
+        .line-v {
+            width: 2px;
+            height: 270px;
+            left: 50%;
+            top: 28px;
+        }
+
+        .line-h {
+            height: 2px;
+            width: 70%;
+            left: 15%;
+            top: 158px;
+        }
+
+        .person {
+            position: absolute;
+            width: 150px;
+            padding: 14px;
+            border: 1px solid var(--line);
+            border-radius: 14px;
+            background: rgba(255, 250, 240, 0.78);
+            box-shadow: 0 16px 34px rgba(77, 52, 18, 0.08);
+        }
+
+        .person strong {
+            display: block;
+            font-size: 15px;
+        }
+
+        .person span {
+            display: block;
+            margin-top: 5px;
+            color: var(--muted);
+            font-size: 12px;
+        }
+
+        .person.one {
+            left: calc(50% - 75px);
+            top: 0;
+        }
+
+        .person.two {
+            left: 6%;
+            top: 176px;
+        }
+
+        .person.three {
+            right: 6%;
+            top: 176px;
+        }
+
+        @media (max-width: 760px) {
+            body {
+                overflow: auto;
+            }
+
+            .shell {
+                min-height: 100vh;
+                height: auto;
+                padding: 22px;
+            }
+
+            .topline,
+            .footnote {
+                align-items: flex-start;
+                flex-direction: column;
+            }
+
+            .hero {
+                grid-template-columns: 1fr;
+                gap: 22px;
+            }
+
+            .tree-mark {
+                display: none;
+            }
+
+            .choice {
+                padding: 18px;
+            }
+        }
+
+        @media (max-height: 720px) and (min-width: 761px) {
+            .shell {
+                gap: 16px;
+                padding-block: 24px;
+            }
+
+            h1 {
+                font-size: clamp(40px, 6vw, 70px);
+            }
+
+            .intro {
+                margin-top: 16px;
+                font-size: 17px;
+            }
+
+            .tree-mark {
+                min-height: 220px;
+            }
+
+            .person.two,
+            .person.three {
+                top: 154px;
+            }
+
+            .line-v {
+                height: 210px;
+            }
+
+            .line-h {
+                top: 140px;
+            }
+        }
+    </style>
+{% endblock %}
+
+{% block body %}
+    <main class="shell">
+        <header class="topline">
+            <div class="brand"><span class="brand-mark"></span>Généalogie</div>
+            <nav class="nav" aria-label="Accès rapides">
+                <a class="login-link" href="{{ path('app_login') }}">Connexion</a>
+                <a class="login-link" href="{{ path('app_register') }}">Créer un compte</a>
+                <a class="login-link" href="{{ path('app_history_towns') }}">Villes</a>
+            </nav>
+        </header>
+
+        <section class="hero">
+            <div>
+                <div class="eyebrow">Généalogie & mémoire locale</div>
+                <h1>Construisez une mémoire familiale claire.</h1>
+                <p class="intro">
+                    Retrouvez les personnes, les branches et les lieux qui racontent l’histoire d’une famille,
+                    dans une interface douce et directe.
+                </p>
+
+                <div class="demo-area">
+                    <form class="demo-form" method="post" action="{{ path('app_login') }}" aria-label="Essayer le compte famille démo">
+                        <input type="hidden" name="_username" value="demo_familles">
+                        <input type="hidden" name="_password" value="demo-familles-2026">
+                        <input type="hidden" name="_csrf_token" value="{{ csrf_token('authenticate') }}">
+                        <button class="demo-button" type="submit">Ouvrir l’arbre démo</button>
+                    </form>
+                    <a class="login-link" href="{{ path('app_visualisation') }}">Prévisualiser l’atelier</a>
+                </div>
+            </div>
+
+            <div class="side-stack">
+                <aside class="tree-mark" aria-hidden="true">
+                    <span class="tree-line line-v"></span>
+                    <span class="tree-line line-h"></span>
+                    <div class="person one"><strong>Madeleine</strong><span>1932 - 2014</span></div>
+                    <div class="person two"><strong>Julien</strong><span>Branche maternelle</span></div>
+                    <div class="person three"><strong>Claire</strong><span>Branche paternelle</span></div>
+                </aside>
+
+                <div class="choices" aria-label="Sections principales">
+                    <a class="choice private" href="{{ path('app_login') }}">
+                        <span class="badge">Famille</span>
+                        <div class="choice-text">
+                            <h2>Arbres familiaux</h2>
+                            <p>Ouvrez un espace protégé pour compléter les fiches, les unions et les générations.</p>
+                        </div>
+                        <span class="choice-arrow">Ouvrir</span>
+                    </a>
+
+                    <a class="choice" href="{{ path('app_history_towns') }}">
+                        <span class="badge">Public</span>
+                        <div class="choice-text">
+                            <h2>Histoires de villes</h2>
+                            <p>Reliez les événements aux lieux, avec une frise et une carte en accès public.</p>
+                        </div>
+                        <span class="choice-arrow">Explorer</span>
+                    </a>
+                </div>
+            </div>
+        </section>
+
+        <footer class="footnote">
+            <span>Compte démo : <strong>demo_familles</strong> / <strong>demo-familles-2026</strong></span>
+            <span>Archive douce · généalogie simplifiée</span>
+        </footer>
+    </main>
+{% endblock %}

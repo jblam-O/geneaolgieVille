@@ -12,6 +12,48 @@
         {% endblock %}
     </head>
     <body>
+        <style>
+            .account-bar {
+                display: flex;
+                justify-content: flex-end;
+                align-items: center;
+                gap: 12px;
+                flex-wrap: wrap;
+                padding: 10px 22px;
+                background: rgba(255, 250, 240, .96);
+                border-bottom: 1px solid rgba(217, 198, 170, .78);
+                color: #77695c;
+                font: 600 14px Georgia, "Times New Roman", serif;
+            }
+
+            .account-bar a {
+                padding: 7px 12px;
+                border: 1px solid #d9c6aa;
+                border-radius: 999px;
+                color: #9a5f2d;
+                text-decoration: none;
+            }
+
+            .account-bar .account-logout {
+                color: #fff;
+                background: #9a5f2d;
+                border-color: #9a5f2d;
+            }
+
+            @media (max-width: 600px) {
+                .account-bar { justify-content: center; padding-inline: 14px; }
+            }
+        </style>
+        <div class="account-bar" aria-label="État du compte">
+            {% if app.user %}
+                <span>Connecté : {{ app.user.userIdentifier }}</span>
+                <a class="account-logout" href="{{ path('app_logout') }}">Se déconnecter</a>
+            {% else %}
+                <span>Non connecté</span>
+                <a href="{{ path('app_login') }}">Se connecter</a>
+                <a href="{{ path('app_register') }}">Créer un compte</a>
+            {% endif %}
+        </div>
         {% block body %}{% endblock %}
     </body>
 </html>

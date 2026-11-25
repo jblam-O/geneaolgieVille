@@ -2,6 +2,7 @@
 
 namespace App\DataFixtures;
 
+use Doctrine\Bundle\FixturesBundle\FixtureGroupInterface;
 use App\Entity\Family;
 use App\Entity\Gender;
 use App\Entity\Person;
@@ -9,8 +10,13 @@ use App\Entity\Union;
 use Doctrine\Bundle\FixturesBundle\Fixture;
 use Doctrine\Persistence\ObjectManager;
 
-class LouisXIVFixtures extends Fixture
+class LouisXIVFixtures extends Fixture implements FixtureGroupInterface
 {
+    public static function getGroups(): array
+    {
+        return ['demo'];
+    }
+
     public function load(ObjectManager $manager): void
     {
         $male = (new Gender())->setName('Male');
@@ -18,123 +24,199 @@ class LouisXIVFixtures extends Fixture
         $manager->persist($male);
         $manager->persist($female);
 
-        $bourbon = (new Family())->setName('Maison de Bourbon');
-        $habsbourg = (new Family())->setName('Maison de Habsbourg');
-        $medici = (new Family())->setName('Maison de Medici');
-        $wittelsbach = (new Family())->setName('Maison de Wittelsbach');
-        $manager->persist($bourbon);
-        $manager->persist($habsbourg);
-        $manager->persist($medici);
-        $manager->persist($wittelsbach);
+        $families = [
+            $this->createFamily('Maison Valmont', 'demo_familles'),
+            $this->createFamily('Maison Lenoir', 'demo_familles'),
+        ];
 
-        $henriIv = $this->createPerson('Henri', 'IV', '1553-12-13', '1610-05-14', $male)->setFamily($bourbon);
-        $marieDeMedici = $this->createPerson('Marie', 'de Medici', '1575-04-26', '1642-07-03', $female)->setFamily($medici);
-        $louisXiii = $this->createPerson('Louis', 'XIII', '1601-09-27', '1643-05-14', $male)->setFamily($bourbon);
-        $anneAutriche = $this->createPerson('Anne', "d'Autriche", '1601-09-22', '1666-01-20', $female)->setFamily($habsbourg);
-        $philippeIii = $this->createPerson('Philippe', 'III d\'Espagne', '1578-04-14', '1621-03-31', $male)->setFamily($habsbourg);
-        $margueriteAutriche = $this->createPerson('Marguerite', "d'Autriche", '1584-12-25', '1611-10-03', $female)->setFamily($habsbourg);
-        $philippeIv = $this->createPerson('Philippe', 'IV d\'Espagne', '1605-04-08', '1665-09-17', $male)->setFamily($habsbourg);
-        $elisabethFrance = $this->createPerson('Elisabeth', 'de France', '1602-11-22', '1644-10-06', $female)->setFamily($bourbon);
-
-        $louisXiv = $this->createPerson('Louis', 'XIV', '1638-09-05', '1715-09-01', $male)->setFamily($bourbon);
-        $marieTherese = $this->createPerson('Marie-Therese', "d'Espagne", '1638-09-20', '1683-07-30', $female)->setFamily($habsbourg);
-        $grandDauphin = $this->createPerson('Louis', 'de France', '1661-11-01', '1711-04-14', $male)->setFamily($bourbon);
-        $marieAnneBaviere = $this->createPerson('Marie-Anne', 'de Baviere', '1660-03-28', '1690-05-20', $female)->setFamily($wittelsbach);
-
-        $ducBourgogne = $this->createPerson('Louis', 'de France', '1682-08-06', '1712-02-18', $male)->setFamily($bourbon);
-        $ducAnjou = $this->createPerson('Philippe', 'de France', '1683-12-19', '1746-07-09', $male)->setFamily($bourbon);
-        $ducBerry = $this->createPerson('Charles', 'de France', '1686-08-31', '1714-05-04', $male)->setFamily($bourbon);
-
-        $unionHenri = $this->createUnion($henriIv, $marieDeMedici, '1600-12-17', '1610-05-14');
-        $unionHenri->addChild($louisXiii);
-        $louisXiii->addParent($henriIv)->addParent($marieDeMedici);
-
-        $unionPhilippeIii = $this->createUnion($philippeIii, $margueriteAutriche, '1599-04-18', '1611-10-03');
-        $unionPhilippeIii->addChild($anneAutriche);
-        $anneAutriche->addParent($philippeIii)->addParent($margueriteAutriche);
-
-        $unionLouisXiii = $this->createUnion($louisXiii, $anneAutriche, '1615-11-25', '1643-05-14');
-        $unionLouisXiii->addChild($louisXiv);
-        $louisXiv->addParent($louisXiii)->addParent($anneAutriche);
-
-        $unionPhilippeIv = $this->createUnion($philippeIv, $elisabethFrance, '1615-10-18', '1644-10-06');
-        $unionPhilippeIv->addChild($marieTherese);
-        $marieTherese->addParent($philippeIv)->addParent($elisabethFrance);
-
-        $unionLouisXiv = $this->createUnion($louisXiv, $marieTherese, '1660-06-09', '1683-07-30');
-        $unionLouisXiv->addChild($grandDauphin);
-        $grandDauphin->addParent($louisXiv)->addParent($marieTherese);
-
-        $unionDauphin = $this->createUnion($grandDauphin, $marieAnneBaviere, '1680-03-07', '1690-05-20');
-        $unionDauphin->addChild($ducBourgogne);
-        $unionDauphin->addChild($ducAnjou);
-        $unionDauphin->addChild($ducBerry);
-        $ducBourgogne->addParent($grandDauphin)->addParent($marieAnneBaviere);
-        $ducAnjou->addParent($grandDauphin)->addParent($marieAnneBaviere);
-        $ducBerry->addParent($grandDauphin)->addParent($marieAnneBaviere);
-
-        foreach ([
-            $henriIv,
-            $marieDeMedici,
-            $louisXiii,
-            $anneAutriche,
-            $philippeIii,
-            $margueriteAutriche,
-            $philippeIv,
-            $elisabethFrance,
-            $louisXiv,
-            $marieTherese,
-            $grandDauphin,
-            $marieAnneBaviere,
-            $ducBourgogne,
-            $ducAnjou,
-            $ducBerry,
-        ] as $person) {
-            $manager->persist($person);
+        foreach ($families as $family) {
+            $manager->persist($family);
         }
 
-        foreach ([
-            $unionHenri,
-            $unionPhilippeIii,
-            $unionLouisXiii,
-            $unionPhilippeIv,
-            $unionLouisXiv,
-            $unionDauphin,
-        ] as $union) {
-            $manager->persist($union);
+        $trees = [
+            [
+                'family' => $families[0],
+                'surname' => 'Valmont',
+                'rootYear' => 1860,
+                'branches' => [3, 2, 4, 2],
+            ],
+            [
+                'family' => $families[1],
+                'surname' => 'Lenoir',
+                'rootYear' => 1875,
+                'branches' => [2, 3, 2, 3],
+            ],
+        ];
+
+        foreach ($trees as $tree) {
+            $this->buildImaginaryTree(
+                $manager,
+                $tree['family'],
+                $tree['surname'],
+                $tree['rootYear'],
+                $tree['branches'],
+                $male,
+                $female
+            );
         }
 
         $manager->flush();
     }
 
+    private function createFamily(string $name, ?string $accountIdentifier = null): Family
+    {
+        return (new Family())
+            ->setName($name)
+            ->setAccountIdentifier($accountIdentifier);
+    }
+
+    /**
+     * @param array<int, int> $childrenByGeneration
+     */
+    private function buildImaginaryTree(
+        ObjectManager $manager,
+        Family $family,
+        string $surname,
+        int $rootYear,
+        array $childrenByGeneration,
+        Gender $male,
+        Gender $female
+    ): void {
+        $generation = $this->createCouple(
+            $manager,
+            $family,
+            $surname,
+            'Adrien',
+            'Claire',
+            $rootYear,
+            $male,
+            $female
+        );
+
+        foreach ($childrenByGeneration as $level => $childrenCount) {
+            $personA = $generation[0];
+
+            $partnerA = $this->createPerson(
+                $manager,
+                $family,
+                $this->makeFirstName($surname, $level + 1, 1, 'partner'),
+                $this->makeLastName($surname, $level + 1),
+                $personA->getBirthdate()->format('Y') + 2,
+                $female,
+                $personA->getBirthdate()->format('Y') + 78
+            );
+
+            $unionA = $this->createUnion(
+                $manager,
+                $personA,
+                $partnerA,
+                $personA->getBirthdate()->format('Y') + 24,
+                $personA->getBirthdate()->format('Y') + 70
+            );
+
+            $nextGeneration = [];
+            for ($childIndex = 1; $childIndex <= $childrenCount; $childIndex++) {
+                $child = $this->createPerson(
+                    $manager,
+                    $family,
+                    $this->makeFirstName($surname, $level + 2, $childIndex, 'child'),
+                    $surname,
+                    $personA->getBirthdate()->format('Y') + 26 + ($childIndex * 2),
+                    $childIndex % 2 === 0 ? $female : $male,
+                    $personA->getBirthdate()->format('Y') + 90
+                );
+
+                $unionA->addChild($child);
+                $child->addParent($personA)->addParent($partnerA);
+                $nextGeneration[] = $child;
+            }
+
+            $heir = $nextGeneration[0];
+            $heirPartner = $this->createPerson(
+                $manager,
+                $family,
+                $this->makeFirstName($surname, $level + 2, 1, 'partner'),
+                $this->makeLastName($surname, $level + 2),
+                $heir->getBirthdate()->format('Y') + 2,
+                $male,
+                $heir->getBirthdate()->format('Y') + 82
+            );
+
+            $generation = [$heir, $heirPartner];
+        }
+    }
+
+    /**
+     * @return array<int, Person>
+     */
+    private function createCouple(
+        ObjectManager $manager,
+        Family $family,
+        string $surname,
+        string $firstA,
+        string $firstB,
+        int $birthYear,
+        Gender $genderA,
+        Gender $genderB
+    ): array {
+        $personA = $this->createPerson($manager, $family, $firstA, $surname, $birthYear, $genderA, $birthYear + 74);
+        $personB = $this->createPerson($manager, $family, $firstB, $surname, $birthYear + 2, $genderB, $birthYear + 78);
+
+        $this->createUnion($manager, $personA, $personB, $birthYear + 22, $birthYear + 78);
+
+        return [$personA, $personB];
+    }
+
     private function createPerson(
+        ObjectManager $manager,
+        Family $family,
         string $firstName,
         string $lastName,
-        string $birth,
-        string $death,
-        Gender $gender
+        int $birthYear,
+        Gender $gender,
+        int $deathYear
     ): Person {
-        return (new Person())
+        $person = (new Person())
             ->setFirstName($firstName)
             ->setLastName($lastName)
-            ->setBirthdate(new \DateTime($birth))
-            ->setDeathdate(new \DateTime($death))
-            ->setGender($gender);
+            ->setBirthdate(new \DateTime(sprintf('%d-01-01', $birthYear)))
+            ->setDeathdate(new \DateTime(sprintf('%d-12-31', $deathYear)))
+            ->setGender($gender)
+            ->setFamily($family);
+
+        $manager->persist($person);
+
+        return $person;
     }
 
     private function createUnion(
+        ObjectManager $manager,
         Person $personA,
         Person $personB,
-        string $start,
-        string $end
+        int $startYear,
+        int $endYear
     ): Union {
         $union = (new Union())
-            ->setStartdate(new \DateTime($start))
-            ->setEnddate(new \DateTime($end));
+            ->setStartdate(new \DateTime(sprintf('%d-06-15', $startYear)))
+            ->setEnddate(new \DateTime(sprintf('%d-06-15', $endYear)));
 
         $union->addPerson1($personA);
         $union->addPerson1($personB);
 
+        $manager->persist($union);
+
         return $union;
+    }
+
+    private function makeFirstName(string $surname, int $generation, int $index, string $role): string
+    {
+        $suffix = strtoupper(substr($surname, 0, 2));
+
+        return sprintf('%s_%s_%d_%d', ucfirst($role), $suffix, $generation, $index);
+    }
+
+    private function makeLastName(string $surname, int $generation): string
+    {
+        return sprintf('%s_%d', $surname, $generation);
     }
 }

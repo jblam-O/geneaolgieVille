@@ -18,6 +18,9 @@ class Family
     #[ORM\Column(length: 255)]
     private ?string $name = null;
 
+    #[ORM\Column(length: 180, nullable: true)]
+    private ?string $accountIdentifier = null;
+
     /**
      * @var Collection<int, Person>
      */
@@ -42,6 +45,18 @@ class Family
     public function setName(string $name): static
     {
         $this->name = $name;
+
+        return $this;
+    }
+
+    public function getAccountIdentifier(): ?string
+    {
+        return $this->accountIdentifier;
+    }
+
+    public function setAccountIdentifier(?string $accountIdentifier): static
+    {
+        $this->accountIdentifier = $accountIdentifier;
 
         return $this;
     }

@@ -21,11 +21,25 @@ class Person
     #[ORM\Column(length: 255)]
     private ?string $lastName = null;
 
-    #[ORM\Column]
+    #[ORM\Column(nullable: true)]
     private ?\DateTime $birthdate = null;
 
-    #[ORM\Column]
+    #[ORM\Column(nullable: true)]
     private ?\DateTime $deathdate = null;
+
+    #[ORM\Column(length: 255, nullable: true)]
+    private ?string $birthPlace = null;
+
+    #[ORM\Column(length: 255, nullable: true)]
+    private ?string $deathPlace = null;
+
+    /** @var list<array{type: string, date?: string, place?: string, note?: string}> */
+    #[ORM\Column(type: 'json')]
+    private array $lifeEvents = [];
+
+    /** @var list<string> */
+    #[ORM\Column(type: 'json')]
+    private array $photoUrls = [];
 
     #[ORM\ManyToOne(inversedBy: 'people')]
     private ?Gender $gender = null;
@@ -95,7 +109,7 @@ class Person
         return $this->birthdate;
     }
 
-    public function setBirthdate(\DateTime $birthdate): static
+    public function setBirthdate(?\DateTime $birthdate): static
     {
         $this->birthdate = $birthdate;
 
@@ -107,9 +121,61 @@ class Person
         return $this->deathdate;
     }
 
-    public function setDeathdate(\DateTime $deathdate): static
+    public function setDeathdate(?\DateTime $deathdate): static
     {
         $this->deathdate = $deathdate;
+
+        return $this;
+    }
+
+    public function getBirthPlace(): ?string
+    {
+        return $this->birthPlace;
+    }
+
+    public function setBirthPlace(?string $birthPlace): static
+    {
+        $this->birthPlace = $birthPlace;
+
+        return $this;
+    }
+
+    public function getDeathPlace(): ?string
+    {
+        return $this->deathPlace;
+    }
+
+    public function setDeathPlace(?string $deathPlace): static
+    {
+        $this->deathPlace = $deathPlace;
+
+        return $this;
+    }
+
+    /** @return list<array{type: string, date?: string, place?: string, note?: string}> */
+    public function getLifeEvents(): array
+    {
+        return $this->lifeEvents;
+    }
+
+    /** @param list<array{type: string, date?: string, place?: string, note?: string}> $lifeEvents */
+    public function setLifeEvents(array $lifeEvents): static
+    {
+        $this->lifeEvents = array_values($lifeEvents);
+
+        return $this;
+    }
+
+    /** @return list<string> */
+    public function getPhotoUrls(): array
+    {
+        return $this->photoUrls;
+    }
+
+    /** @param list<string> $photoUrls */
+    public function setPhotoUrls(array $photoUrls): static
+    {
+        $this->photoUrls = array_values(array_filter(array_map('strval', $photoUrls)));
 
         return $this;
     }

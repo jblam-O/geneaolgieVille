@@ -10,6 +10,7 @@ class MediaStorage
     public function __construct(
         private readonly HttpClientInterface $httpClient,
         private readonly string $projectDir,
+        private readonly string $publicBaseUrl = '',
         private readonly string $blobToken = '',
     ) {}
 
@@ -52,7 +53,11 @@ class MediaStorage
                 throw new \RuntimeException('Impossible de créer le dossier local des médias.');
             }
             $file->move($directory, $filename);
-            $url = '/uploads/history-towns/'.$filename;
+            $path = '/uploads/history-towns/'.$filename;
+            $url = rtrim($this->publicBaseUrl, '/').$path;
+            if ($this->publicBaseUrl === '') {
+                $url = $path;
+            }
         }
 
         return ['url' => $url, 'mimeType' => $mimeType, 'originalName' => $file->getClientOriginalName(), 'type' => $type];

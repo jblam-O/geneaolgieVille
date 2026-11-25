@@ -1,0 +1,65 @@
+version: "3.8"
+
+services:
+  database:
+    image: mysql:8.4
+    environment:
+      MYSQL_DATABASE: ${MYSQL_DATABASE:-genealogie}
+      MYSQL_USER: ${MYSQL_USER:-genealogie}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD}
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
+    volumes:
+      - database_data:/var/lib/mysql
+    networks:
+      - backend
+    deploy:
+      replicas: 1
+      restart_policy:
+        condition: any
+
+  app:
+    image: genealogieville:latest
+    environment:
+      APP_ENV: prod
+      APP_DEBUG: "0"
+      APP_SECRET: ${APP_SECRET}
+      APP_PUBLIC_URL: ${APP_PUBLIC_URL}
+      DEFAULT_URI: ${DEFAULT_URI}
+      APP_USER_AGENT: ${APP_USER_AGENT:-GenealogieVille/1.0}
+      DATABASE_URL: mysql://${MYSQL_USER:-genealogie}:${MYSQL_PASSWORD}@database:3306/${MYSQL_DATABASE:-genealogie}?serverVersion=8.4.0&charset=utf8mb4
+      MESSENGER_TRANSPORT_DSN: ${MESSENGER_TRANSPORT_DSN:-doctrine://default?auto_setup=0}
+      MAILER_DSN: ${MAILER_DSN:-null://null}
+      BLOB_READ_WRITE_TOKEN: ${BLOB_READ_WRITE_TOKEN:-}
+    volumes:
+      - uploads:/var/www/html/public/uploads
+      - var:/var/www/html/var
+    networks:
+      - backend
+      - traefik-public
+    deploy:
+      replicas: 1
+      restart_policy:
+        condition: any
+      labels:
+        traefik.enable: "true"
+        traefik.constraint-label: traefik-public
+        traefik.docker.network: traefik-public
+        traefik.http.routers.genealogie-http.rule: Host(`genealogie.rose-it.fr`)
+        traefik.http.routers.genealogie-http.entrypoints: http
+        traefik.http.routers.genealogie-http.middlewares: https-redirect
+        traefik.http.routers.genealogie-https.rule: Host(`genealogie.rose-it.fr`)
+        traefik.http.routers.genealogie-https.entrypoints: https
+        traefik.http.routers.genealogie-https.tls: "true"
+        traefik.http.routers.genealogie-https.tls.certresolver: le
+        traefik.http.services.genealogie.loadbalancer.server.port: "80"
+
+volumes:
+  database_data:
+  uploads:
+  var:
+
+networks:
+  backend:
+    driver: overlay
+  traefik-public:
+    external: true

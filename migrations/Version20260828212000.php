@@ -20,8 +20,8 @@ final class Version20260828212000 extends AbstractMigration
         $town->addColumn('latitude', 'float');
         $town->addColumn('longitude', 'float');
         $town->setPrimaryKey(['id']);
-        $town->addUniqueIndex(['name'], 'UNIQ_TOWN_NAME');
-        $town->addUniqueIndex(['slug'], 'UNIQ_TOWN_SLUG');
+        $town->addUniqueIndex(['name'], 'UNIQ_4CE6C7A45E237E06');
+        $town->addUniqueIndex(['slug'], 'UNIQ_4CE6C7A4989D9B62');
 
         $event = $schema->createTable('town_event');
         $event->addColumn('id', 'integer', ['autoincrement' => true]);
@@ -35,7 +35,7 @@ final class Version20260828212000 extends AbstractMigration
         $event->addColumn('longitude', 'float', ['notnull' => false]);
         $event->addColumn('created_at', 'datetime_immutable');
         $event->setPrimaryKey(['id']);
-        $event->addIndex(['town_id'], 'IDX_TOWN_EVENT_TOWN');
+        $event->addIndex(['town_id'], 'IDX_E2BAEB4875E23604');
         $event->addForeignKeyConstraint('town', ['town_id'], ['id'], ['onDelete' => 'CASCADE'], 'FK_TOWN_EVENT_TOWN');
 
         $media = $schema->createTable('town_event_media');
@@ -46,7 +46,7 @@ final class Version20260828212000 extends AbstractMigration
         $media->addColumn('original_name', 'string', ['length' => 255]);
         $media->addColumn('mime_type', 'string', ['length' => 120]);
         $media->setPrimaryKey(['id']);
-        $media->addIndex(['event_id'], 'IDX_TOWN_MEDIA_EVENT');
+        $media->addIndex(['event_id'], 'IDX_84B2996F71F7E88B');
         $media->addForeignKeyConstraint('town_event', ['event_id'], ['id'], ['onDelete' => 'CASCADE'], 'FK_TOWN_MEDIA_EVENT');
     }
 

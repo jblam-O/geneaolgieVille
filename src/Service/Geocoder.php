@@ -41,6 +41,12 @@ final class Geocoder
     /** @return array{latitude: float, longitude: float, label: string}|null */
     private function search(string $query): ?array
     {
+        $userAgent = $_ENV['APP_USER_AGENT'] ?? $_SERVER['APP_USER_AGENT'] ?? 'GenealogieVille/1.0';
+        $appUrl = $_ENV['APP_PUBLIC_URL'] ?? $_SERVER['APP_PUBLIC_URL'] ?? '';
+        if ($appUrl !== '') {
+            $userAgent .= ' ('.$appUrl.')';
+        }
+
         $url = 'https://nominatim.openstreetmap.org/search?'.http_build_query([
             'q' => $query,
             'format' => 'jsonv2',
@@ -55,7 +61,7 @@ final class Geocoder
             CURLOPT_TIMEOUT => 8,
             CURLOPT_HTTPHEADER => [
                 'Accept: application/json',
-                'User-Agent: GenealogieVille/1.0 (https://geneaolgie-ville.vercel.app)',
+                'User-Agent: '.$userAgent,
             ],
         ]);
         $body = curl_exec($curl);
