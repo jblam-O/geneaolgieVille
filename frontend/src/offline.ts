@@ -1,4 +1,5 @@
 import type { GenealogyDocument, GedcomPerson } from './model/genealogy';
+import { demoDocument } from './model/genealogy';
 
 type Payload = { families: { id: number | string; name: string }[]; selectedFamilyId: number | string | null; document: GenealogyDocument | null };
 type Operation = { id: string; url: string; method: string; body: Record<string, unknown>; temporaryId?: string };
@@ -24,6 +25,21 @@ async function persist() {
 }
 export async function initializeOffline() {
   account = window.document.getElementById('genealogy-root')?.dataset.account ?? '';
+  if (!account && import.meta.env.DEV) {
+    account = 'local-demo';
+    state = {
+      documents: {
+        demo: {
+          families: [{ id: 'demo', name: demoDocument.title }],
+          selectedFamilyId: 'demo',
+          document: { ...structuredClone(demoDocument), rootPersonId: 'p-iris' },
+        },
+      },
+      queue: [],
+      ids: {},
+    };
+    return;
+  }
   if (!account) throw new Error('Connectez-vous pour préparer le mode hors connexion.');
   const db = await database();
   state = await new Promise<Store>((resolve, reject) => { const request = db.transaction('accounts').objectStore('accounts').get(account); request.onsuccess = () => resolve(request.result ?? state); request.onerror = () => reject(request.error); });
