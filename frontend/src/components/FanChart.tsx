@@ -4,7 +4,7 @@ import { displayPerson } from '../model/genealogy';
 
 type Direction = 'ancestors' | 'descendants';
 type FanChartProps = { document: GenealogyDocument; rootId: string; direction: Direction; onPersonClick: (id: string) => void };
-type Sector = { person: GedcomPerson; depth: number; slot: number };
+type Sector = { person: GedcomPerson; depth: number; startRatio: number; endRatio: number };
 
 function polar(cx: number, cy: number, radius: number, angle: number) {
   return { x: cx + Math.cos(angle) * radius, y: cy + Math.sin(angle) * radius };
@@ -38,16 +38,23 @@ function relatedSectors(document: GenealogyDocument, rootId: string, direction: 
 
   const sectors: Sector[] = [];
   const seen = new Set<string>([rootId]);
-  const queue: Array<{ id: string; depth: number; slot: number }> = [{ id: rootId, depth: 0, slot: 0 }];
+  const queue: Array<{ id: string; depth: number; startRatio: number; endRatio: number }> = [
+    { id: rootId, depth: 0, startRatio: 0, endRatio: 1 },
+  ];
   while (queue.length) {
     const current = queue.shift()!;
-    (related.get(current.id) ?? []).sort((a, b) => (byPerson.get(a)?.sex === 'M' ? -1 : 1) - (byPerson.get(b)?.sex === 'M' ? -1 : 1)).forEach((id, index) => {
-      if (seen.has(id)) return;
+    const directRelations = (related.get(current.id) ?? [])
+      .filter((id) => !seen.has(id))
+      .sort((a, b) => (byPerson.get(a)?.sex === 'M' ? -1 : 1) - (byPerson.get(b)?.sex === 'M' ? -1 : 1));
+    const sectorWidth = (current.endRatio - current.startRatio) / Math.max(1, directRelations.length);
+
+    directRelations.forEach((id, index) => {
       seen.add(id);
       const depth = current.depth + 1;
-      const slot = current.slot * 2 + index;
-      sectors.push({ person: byPerson.get(id)!, depth, slot });
-      queue.push({ id, depth, slot });
+      const startRatio = current.startRatio + index * sectorWidth;
+      const endRatio = startRatio + sectorWidth;
+      sectors.push({ person: byPerson.get(id)!, depth, startRatio, endRatio });
+      queue.push({ id, depth, startRatio, endRatio });
     });
   }
   return sectors;
@@ -69,8 +76,8 @@ export function FanChart({ document, rootId, direction, onPersonClick }: FanChar
         </defs>
         {sectors.map((sector) => {
           const person = displayPerson(sector.person);
-          const start = direction === 'ancestors' ? Math.PI + sector.slot * Math.PI / (2 ** sector.depth) : sector.slot * Math.PI / (2 ** sector.depth);
-          const end = start + Math.PI / (2 ** sector.depth);
+          const start = (direction === 'ancestors' ? Math.PI : 0) + sector.startRatio * Math.PI;
+          const end = (direction === 'ancestors' ? Math.PI : 0) + sector.endRatio * Math.PI;
           const inner = 120 + (sector.depth - 1) * ring;
           const outer = inner + ring - 5;
           const label = polar(center, center, (inner + outer) / 2, (start + end) / 2);

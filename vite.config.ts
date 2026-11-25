@@ -11,9 +11,9 @@ export default defineConfig({
     manifest: true,
     rollupOptions: {
       output: {
-        entryFileNames: 'assets/app.js',
-        chunkFileNames: 'assets/[name].js',
-        assetFileNames: 'assets/[name][extname]',
+        entryFileNames: 'assets/app-v4.js',
+        chunkFileNames: 'assets/[name]-v4.js',
+        assetFileNames: 'assets/[name]-v4[extname]',
       },
     },
   },

@@ -1,5 +1,5 @@
-const CACHE = 'genealogy-shell-v3';
-const ASSETS = ['/genealogy/index.html', '/genealogy/assets/app.js', '/genealogy/assets/index.css', '/genealogy/assets/html2canvas.esm.js', '/genealogy/assets/index.es.js', '/genealogy/assets/purify.es.js', '/genealogy/manifest.webmanifest', '/genealogy/icon-192.png', '/genealogy/icon-512.png'];
+const CACHE = 'genealogy-shell-v5';
+const ASSETS = ['/genealogy/index.html', '/genealogy/assets/app-v4.js', '/genealogy/assets/index-v4.css', '/genealogy/assets/html2canvas.esm-v4.js', '/genealogy/assets/index.es-v4.js', '/genealogy/assets/purify.es-v4.js', '/genealogy/manifest.webmanifest', '/genealogy/icon-192.png', '/genealogy/icon-512.png'];
 self.addEventListener('install', event => { event.waitUntil(caches.open(CACHE).then(cache => cache.addAll(ASSETS))); });
 self.addEventListener('activate', event => { event.waitUntil(caches.keys().then(keys => Promise.all(keys.filter(key => key.startsWith('genealogy-shell-') && key !== CACHE).map(key => caches.delete(key)))).then(() => self.clients.claim())); });
 self.addEventListener('fetch', event => {
